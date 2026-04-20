@@ -37,14 +37,14 @@ else
 endif
 
 # For the future
-CLIENT_CFLAGS  :=
+CLIENT_CFLAGS  := -lGL -lGLU -lglut
 SERVER_CFLAGS  :=
 LIB_CFLAGS     :=
 
 LIB_LDFLAGS    := -shared
 
 # Per-binary linker flags
-CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
+CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)' -lGL -lGLU -lglut
 SERVER_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 
 # Libraries to link against (will need -lpthread, -lm, etc.)
@@ -58,7 +58,7 @@ SERVER_ALL_CF := $(CFLAGS) $(SERVER_CFLAGS)
 LIB_ALL_CF    := $(CFLAGS) $(LIB_CFLAGS)
 
 # Source and object files
-CLIENT_SRCS := $(wildcard $(CLIENT_SRC_DIR)/*.c)
+CLIENT_SRCS := $(shell find $(CLIENT_SRC_DIR) -name '*.c')
 SERVER_SRCS := $(wildcard $(SERVER_SRC_DIR)/*.c)
 LIB_SRCS    := $(wildcard $(LIB_SRC_DIR)/*.c)
 
@@ -91,14 +91,17 @@ $(SHARED_LIB): $(LIB_OBJS) | $(BUILD_DIR)
 
 # Compile files
 $(OBJ_DIR)/client/%.o: $(CLIENT_SRC_DIR)/%.c | $(OBJ_DIR)/client
+	@mkdir -p $(dir $@)
 	$(CC) $(CLIENT_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
 
 $(OBJ_DIR)/server/%.o: $(SERVER_SRC_DIR)/%.c | $(OBJ_DIR)/server
+	@mkdir -p $(dir $@)
 	$(CC) $(SERVER_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
 
 $(OBJ_DIR)/lib/%.o: $(LIB_SRC_DIR)/%.c | $(OBJ_DIR)/lib
+	@mkdir -p $(dir $@)
 	$(CC) $(LIB_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
 
