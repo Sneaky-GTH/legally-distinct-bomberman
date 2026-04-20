@@ -9,13 +9,8 @@
 #define WINDOW_HEIGHT 720
 
 void keyboardHandler(unsigned char key, int x, int y) {
-    if (GUI_STATE.screen == Main) {
-        if (key == '\r') { // Enter key
-            if (MAIN_STATE.server_address != NULL) {
-                free(MAIN_STATE.server_address);
-            }
-            MAIN_STATE.server_address = NULL;
-        } else if (key == '\b') { // Backspace key
+    if (GUI_STATE.screen == Main && MAIN_STATE.is_address_selected) {
+        if (key == '\b') { // Backspace key
             if (MAIN_STATE.server_address != NULL) {
                 size_t len = strlen(MAIN_STATE.server_address);
                 if (len > 0) {
@@ -41,6 +36,8 @@ void idleLoop(void) {
 }
 
 void drawMainScreen(void) {
+    int timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
+
     // Set text color to white
     glColor3f(1.0, 1.0, 1.0);
     drawText("Legally Distinct Bomberman", 40, 40);
@@ -61,10 +58,47 @@ void drawMainScreen(void) {
     glEnd();
 
     if (MAIN_STATE.server_address == NULL) {
-        drawText("Enter server address...", INPUT_X + 10, INPUT_Y + 24);
-    } else {
-        drawText(MAIN_STATE.server_address, INPUT_X + 10, INPUT_Y + 24);
+        MAIN_STATE.server_address = malloc(1);
+        MAIN_STATE.server_address[0] = '\0';
     }
+
+    if (MAIN_STATE.server_address[0] == '\0' && !MAIN_STATE.is_address_selected) {
+        drawText("Enter server address...", INPUT_X + 10, INPUT_Y + 23);
+    } else {
+        if (timeSinceStart % 1000 < 500 && MAIN_STATE.is_address_selected) {
+            glColor3f(1.0, 1.0, 1.0); // Cursor color
+            size_t len = strlen(MAIN_STATE.server_address);
+            int caretX = INPUT_X + 10 + textWidth(GLUT_BITMAP_HELVETICA_18, MAIN_STATE.server_address, len);
+
+            glBegin(GL_LINES);
+            glVertex2f(caretX, INPUT_Y + 5);
+            glVertex2f(caretX, INPUT_Y + INPUT_HEIGHT - 5);
+            glEnd();
+        }
+        drawText(MAIN_STATE.server_address, INPUT_X + 10, INPUT_Y + 23);
+    }
+
+    // Draw connect button
+    const int BUTTON_WIDTH = 100;
+    const int BUTTON_HEIGHT = 32;
+    const int BUTTON_X = INPUT_X + INPUT_WIDTH + 20;
+    const int BUTTON_Y = INPUT_Y;
+
+    if (GUI_STATE.mouse_x >= BUTTON_X && GUI_STATE.mouse_x <= BUTTON_X + BUTTON_WIDTH &&
+        GUI_STATE.mouse_y >= BUTTON_Y && GUI_STATE.mouse_y <= BUTTON_Y + BUTTON_HEIGHT) {
+        glColor3f(0.7, 0.7, 0.7); // Hover color
+    } else {
+        glColor3f(1.0, 1.0, 1.0); // Normal color
+    }
+
+    glBegin(GL_LINE_LOOP);
+    glVertex2f(BUTTON_X, BUTTON_Y);
+    glVertex2f(BUTTON_X + BUTTON_WIDTH, BUTTON_Y);
+    glVertex2f(BUTTON_X + BUTTON_WIDTH, BUTTON_Y + BUTTON_HEIGHT);
+    glVertex2f(BUTTON_X, BUTTON_Y + BUTTON_HEIGHT);
+    glEnd();
+
+    drawText("Connect", BUTTON_X + 10, BUTTON_Y + 23);
 }
 
 void drawConfigure(void) {
@@ -100,9 +134,12 @@ void specialKeyboardHandler(int key, int x, int y) {
 
 }
 
-void mouseHandler(int button, int state, int x, int y) {
+void mouseMoveHandler(int x, int y) {
     GUI_STATE.mouse_x = x;
     GUI_STATE.mouse_y = y;
+}
+
+void mouseHandler(int button, int state, int x, int y) {
 }
 
 void reshape(int width, int height) {
@@ -142,6 +179,8 @@ int main(int argc, char* argv[]) {
     glutKeyboardFunc(keyboardHandler);
     glutSpecialFunc(specialKeyboardHandler);
     glutMouseFunc(mouseHandler);
+    glutPassiveMotionFunc(mouseMoveHandler);
+    glutMotionFunc(mouseMoveHandler);
     glutIdleFunc(idleLoop);
     glutDisplayFunc(draw);
     glutMainLoop();
