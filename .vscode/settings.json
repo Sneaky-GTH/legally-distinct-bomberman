@@ -1,0 +1,12 @@
+{
+    "C_Cpp.default.includePath": [
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/src/lib",
+    ],
+    "C_Cpp.default.defines": [
+        "DEBUG",
+        "VERSION=1.0.0",
+    ],
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+    "C_Cpp.default.cStandard": "c99",
+}

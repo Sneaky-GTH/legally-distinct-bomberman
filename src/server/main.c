@@ -1,10 +1,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "lib.h"
 
 int main(void) {
-
-    printf("Bomberman!\n");
+    printf("%d\n", get_secret_constant());
 
     return 0;
 }

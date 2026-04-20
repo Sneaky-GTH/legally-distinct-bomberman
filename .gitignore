@@ -1,1 +1,2 @@
-.main.c.kate-swp
+*.kate-swp
+build/
