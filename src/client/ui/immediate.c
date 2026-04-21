@@ -21,6 +21,7 @@ int is_focused(const char *component_id) {
 
 void focus_component(const char *component_id) {
     if (component_id == NULL) {
+        focused_id[0] = '\0';
         return;
     }
 
