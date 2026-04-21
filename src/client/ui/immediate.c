@@ -11,7 +11,7 @@ static int queued_completed_clicks[TRACKED_MOUSE_BUTTONS] = {0};
 static int frame_completed_clicks[TRACKED_MOUSE_BUTTONS] = {0};
 static char focused_id[MAX_FOCUS_ID_LEN] = {0};
 
-int is_focused(const char* component_id) {
+int is_focused(const char *component_id) {
     if (component_id == NULL || focused_id[0] == '\0') {
         return 0;
     }
@@ -19,7 +19,7 @@ int is_focused(const char* component_id) {
     return strncmp(focused_id, component_id, MAX_FOCUS_ID_LEN) == 0;
 }
 
-void focus_component(const char* component_id) {
+void focus_component(const char *component_id) {
     if (component_id == NULL) {
         return;
     }
@@ -30,16 +30,16 @@ void focus_component(const char* component_id) {
 
 static ImComponentRenderFunc default_renderer_for_type(enum ImComponentType type) {
     switch (type) {
-        case ImComponentInput:
-        case ImComponentButton:
-            return render_component_outline;
-        case ImComponentUnknown:
-        default:
-            return render_component_outline;
+    case ImComponentInput:
+    case ImComponentButton:
+        return render_component_outline;
+    case ImComponentUnknown:
+    default:
+        return render_component_outline;
     }
 }
 
-void component_init(struct ImComponent* component, const char* id, enum ImComponentType type) {
+void component_init(struct ImComponent *component, const char *id, enum ImComponentType type) {
     if (component == NULL) {
         return;
     }
@@ -73,8 +73,7 @@ void im_begin_frame(void) {
     }
 }
 
-void im_end_frame(void) {
-}
+void im_end_frame(void) {}
 
 void im_mouse_button(int button, int state) {
     int index = button_index(button);
@@ -95,7 +94,7 @@ void im_mouse_button(int button, int state) {
     }
 }
 
-struct ImInput input_create(const char* id, char* buffer, size_t capacity) {
+struct ImInput input_create(const char *id, char *buffer, size_t capacity) {
     struct ImInput input;
 
     component_init(&input.component, id, ImComponentInput);
@@ -105,7 +104,7 @@ struct ImInput input_create(const char* id, char* buffer, size_t capacity) {
     return input;
 }
 
-void set_component_renderer(struct ImComponent* component, ImComponentRenderFunc render_func) {
+void set_component_renderer(struct ImComponent *component, ImComponentRenderFunc render_func) {
     if (component == NULL) {
         return;
     }
@@ -113,7 +112,7 @@ void set_component_renderer(struct ImComponent* component, ImComponentRenderFunc
     component->render_func = render_func;
 }
 
-void layout_component(struct ImComponent* component, int x, int y, int width, int height) {
+void layout_component(struct ImComponent *component, int x, int y, int width, int height) {
     if (component == NULL) {
         return;
     }
@@ -124,7 +123,7 @@ void layout_component(struct ImComponent* component, int x, int y, int width, in
     component->height = height;
 }
 
-void render_component(struct ImComponent* component) {
+void render_component(struct ImComponent *component) {
     if (component == NULL) {
         return;
     }
@@ -136,7 +135,7 @@ void render_component(struct ImComponent* component) {
     component->render_func(component);
 }
 
-void render_component_outline(const struct ImComponent* component) {
+void render_component_outline(const struct ImComponent *component) {
     if (component == NULL) {
         return;
     }
@@ -149,11 +148,9 @@ void render_component_outline(const struct ImComponent* component) {
     glEnd();
 }
 
-int is_mouse_over(const struct ImComponent* component, int mouse_x, int mouse_y) {
-    return mouse_x >= component->x &&
-           mouse_x <= component->x + component->width &&
-           mouse_y >= component->y &&
-           mouse_y <= component->y + component->height;
+int is_mouse_over(const struct ImComponent *component, int mouse_x, int mouse_y) {
+    return mouse_x >= component->x && mouse_x <= component->x + component->width &&
+           mouse_y >= component->y && mouse_y <= component->y + component->height;
 }
 
 int consume_click(int mouse_button) {

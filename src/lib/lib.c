@@ -1,3 +1,1 @@
-int get_secret_constant() {
-    return 1;
-}
+int get_secret_constant() { return 1; }

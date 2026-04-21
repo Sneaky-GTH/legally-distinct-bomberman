@@ -21,6 +21,6 @@ static struct GuiState GUI_STATE = {
     .mouse_y = 0,
 };
 static struct MainState MAIN_STATE = {
-    .is_address_selected = 1, // Enable by default (TODO: Remove this when input handling is implemented)
-    .server_address = ""
-};
+    .is_address_selected =
+        1, // Enable by default (TODO: Remove this when input handling is implemented)
+    .server_address = ""};

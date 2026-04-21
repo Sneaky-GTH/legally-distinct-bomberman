@@ -1,7 +1,7 @@
 #include <string.h>
 #include "../immediate.h"
 
-void input_focus(struct ImInput* input) {
+void input_focus(struct ImInput *input) {
     if (input == NULL || input->component.id == NULL) {
         return;
     }
@@ -9,7 +9,7 @@ void input_focus(struct ImInput* input) {
     focus_component(input->component.id);
 }
 
-void input_blur(struct ImInput* input) {
+void input_blur(struct ImInput *input) {
     if (input == NULL || input->component.id == NULL) {
         focus_component(NULL);
         return;
@@ -20,7 +20,7 @@ void input_blur(struct ImInput* input) {
     }
 }
 
-int input_is_focused(const struct ImInput* input) {
+int input_is_focused(const struct ImInput *input) {
     if (input == NULL || input->component.id == NULL) {
         return 0;
     }
@@ -28,7 +28,7 @@ int input_is_focused(const struct ImInput* input) {
     return is_focused(input->component.id);
 }
 
-void input_handle_key(struct ImInput* input, unsigned char key) {
+void input_handle_key(struct ImInput *input, unsigned char key) {
     if (input == NULL || input->buffer == NULL || input->capacity == 0) {
         return;
     }
@@ -46,6 +46,6 @@ void input_handle_key(struct ImInput* input, unsigned char key) {
         return;
     }
 
-    input->buffer[len] = (char) key;
+    input->buffer[len] = (char)key;
     input->buffer[len + 1] = '\0';
 }

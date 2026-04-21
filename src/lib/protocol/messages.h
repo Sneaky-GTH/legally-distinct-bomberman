@@ -2,14 +2,14 @@
 
 #include <stdint.h>
 
-#define msg_common_fields \
-    msg_type_t msg_type; \
-    uint8_t sender_id; \
+#define msg_common_fields                                                                          \
+    msg_type_t msg_type;                                                                           \
+    uint8_t sender_id;                                                                             \
     uint8_t target_id
 
-#define def_degenerate_msg(name) \
-    typedef struct { \
-        msg_common_fields; \
+#define def_degenerate_msg(name)                                                                   \
+    typedef struct {                                                                               \
+        msg_common_fields;                                                                         \
     } msg_##name##_t;
 
 #ifndef bool
@@ -18,25 +18,11 @@
 #define false 0
 #endif
 
-typedef enum {
-    GAME_LOBBY = 0,
-    GAME_RUNNING = 1,
-    GAME_END = 2
-} game_status_t;
+typedef enum { GAME_LOBBY = 0, GAME_RUNNING = 1, GAME_END = 2 } game_status_t;
 
-typedef enum {
-    DIR_UP = 0,
-    DIR_DOWN = 1,
-    DIR_LEFT = 2,
-    DIR_RIGHT = 3
-} direction_t;
+typedef enum { DIR_UP = 0, DIR_DOWN = 1, DIR_LEFT = 2, DIR_RIGHT = 3 } direction_t;
 
-typedef enum {
-    BONUS_NONE = 0,
-    BONUS_SPEED = 1,
-    BONUS_RADIUS = 2,
-    BONUS_TIMER = 3
-} bonus_type_t;
+typedef enum { BONUS_NONE = 0, BONUS_SPEED = 1, BONUS_RADIUS = 2, BONUS_TIMER = 3 } bonus_type_t;
 
 typedef enum {
     MSG_HELLO = 0,
@@ -59,10 +45,9 @@ typedef enum {
     MSG_BONUS_AVAILABLE = 45,
     MSG_BONUS_RETRIEVED = 46,
     MSG_BLOCK_DESTROYED = 47,
-    MSG_SYNC_BOARD = 100,	
+    MSG_SYNC_BOARD = 100,
     MSG_SYNC_REQUEST = 101
 } msg_type_t;
-
 
 typedef struct {
     msg_common_fields;
@@ -101,7 +86,6 @@ typedef struct {
     msg_common_fields;
     uint8_t status;
 } msg_set_status_t;
-
 
 typedef struct {
     msg_common_fields;

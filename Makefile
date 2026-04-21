@@ -61,13 +61,14 @@ LIB_ALL_CF    := $(CFLAGS) $(LIB_CFLAGS)
 CLIENT_SRCS := $(shell find $(CLIENT_SRC_DIR) -name '*.c')
 SERVER_SRCS := $(wildcard $(SERVER_SRC_DIR)/*.c)
 LIB_SRCS    := $(wildcard $(LIB_SRC_DIR)/*.c)
+FORMAT_SRCS := $(shell find $(SRC_DIR) -type f \( -name '*.c' -o -name '*.h' \))
 
 CLIENT_OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(CLIENT_SRCS))
 SERVER_OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SERVER_SRCS))
 LIB_OBJS    := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(LIB_SRCS))
 
 # Okay begin the actual Makefile here
-.PHONY: all client server lib run_client run_server clean info
+.PHONY: all client server lib run_client run_server clean info format format-check
 
 all: client server
 
@@ -129,6 +130,23 @@ clean:
 	rm -rf $(BUILD_DIR)
 	@echo "Removed $(BUILD_DIR)/"
 
+format:
+	clang-format -i $(FORMAT_SRCS)
+	@echo "Formatted source files."
+
+format-check:
+	@status=0; \
+	for file in $(FORMAT_SRCS); do \
+		tmp=$$(mktemp); \
+		clang-format "$$file" > "$$tmp"; \
+		if ! cmp -s "$$file" "$$tmp"; then \
+			echo "[FORMAT] $$file needs formatting"; \
+			status=1; \
+		fi; \
+		rm -f "$$tmp"; \
+	done; \
+	exit $$status
+
 info:
 	@echo "Mode          : $(if $(filter release,$(MODE)),release,debug)"
 	@echo "CC            : $(CC)"
@@ -150,6 +168,8 @@ help:
 	@echo "  client        - Build client binary"
 	@echo "  server        - Build server binary"
 	@echo "  lib           - Build shared library"
+	@echo "  format        - Format all C and header files with clang-format"
+	@echo "  format-check  - Check whether all C and header files are clang-format clean"
 	@echo "  run_client    - Run the client (requires client binary)"
 	@echo "  run_server    - Run the server (requires server binary)"
 	@echo "  clean         - Remove all build artifacts"
