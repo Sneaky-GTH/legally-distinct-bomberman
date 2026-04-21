@@ -12,7 +12,7 @@ struct GuiState {
 
 struct MainState {
     int is_address_selected;
-    char* server_address;
+    char server_address[256];
 };
 
 static struct GuiState GUI_STATE = {
@@ -22,5 +22,5 @@ static struct GuiState GUI_STATE = {
 };
 static struct MainState MAIN_STATE = {
     .is_address_selected = 1, // Enable by default (TODO: Remove this when input handling is implemented)
-    .server_address = NULL
+    .server_address = ""
 };

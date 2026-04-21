@@ -4,30 +4,26 @@
 #include <GL/glut.h>
 #include "./state.h"
 #include "./ui/text.h"
+#include "./ui/immediate.h"
 
 #define WINDOW_WIDTH 1080
 #define WINDOW_HEIGHT 720
 
+static struct ImInput server_address_input(void) {
+    return input_create("input-id-1", MAIN_STATE.server_address, sizeof(MAIN_STATE.server_address));
+}
+
 void keyboardHandler(unsigned char key, int x, int y) {
-    if (GUI_STATE.screen == Main && MAIN_STATE.is_address_selected) {
-        if (key == '\b') { // Backspace key
-            if (MAIN_STATE.server_address != NULL) {
-                size_t len = strlen(MAIN_STATE.server_address);
-                if (len > 0) {
-                    MAIN_STATE.server_address[len - 1] = '\0';
-                }
-            }
-        } else if (key >= 32 && key <= 126) { // Printable characters
-            size_t len = MAIN_STATE.server_address == NULL ? 0 : strlen(MAIN_STATE.server_address);
-            char* new_address = realloc(MAIN_STATE.server_address, len + 2); // +1 for new char, +1 for null terminator
-            if (new_address == NULL) {
-                fprintf(stderr, "Error: Failed to allocate memory for server address.\n");
-                return;
-            }
-            MAIN_STATE.server_address = new_address;
-            MAIN_STATE.server_address[len] = key;
-            MAIN_STATE.server_address[len + 1] = '\0';
-        }
+    (void) x;
+    (void) y;
+
+    if (GUI_STATE.screen != Main) {
+        return;
+    }
+
+    struct ImInput input = server_address_input();
+    if (input_is_focused(&input)) {
+        input_handle_key(&input, key);
     }
 }
 
@@ -48,24 +44,19 @@ void drawMainScreen(void) {
     const int INPUT_X = 40;
     const int INPUT_Y = 100;
 
-    // Draw input box
-    glColor3f(1.0, 1.0, 1.0);
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(INPUT_X, INPUT_Y);
-    glVertex2f(INPUT_X + INPUT_WIDTH, INPUT_Y);
-    glVertex2f(INPUT_X + INPUT_WIDTH, INPUT_Y + INPUT_HEIGHT);
-    glVertex2f(INPUT_X, INPUT_Y + INPUT_HEIGHT);
-    glEnd();
+    struct ImInput input = server_address_input();
 
-    if (MAIN_STATE.server_address == NULL) {
-        MAIN_STATE.server_address = malloc(1);
-        MAIN_STATE.server_address[0] = '\0';
+    layout_component(&input.component, INPUT_X, INPUT_Y, INPUT_WIDTH, INPUT_HEIGHT);
+    render_component(&input.component);
+
+    if (is_mouse_over(&input.component, GUI_STATE.mouse_x, GUI_STATE.mouse_y) && consume_click(LEFT_MOUSE_BUTTON)) {
+        input_focus(&input);
     }
 
-    if (MAIN_STATE.server_address[0] == '\0' && !MAIN_STATE.is_address_selected) {
+    if (MAIN_STATE.server_address[0] == '\0' && !input_is_focused(&input)) {
         drawText("Enter server address...", INPUT_X + 10, INPUT_Y + 23);
     } else {
-        if (timeSinceStart % 1000 < 500 && MAIN_STATE.is_address_selected) {
+        if (timeSinceStart % 1000 < 500 && input_is_focused(&input)) {
             glColor3f(1.0, 1.0, 1.0); // Cursor color
             size_t len = strlen(MAIN_STATE.server_address);
             int caretX = INPUT_X + 10 + textWidth(GLUT_BITMAP_HELVETICA_18, MAIN_STATE.server_address, len);
@@ -84,21 +75,23 @@ void drawMainScreen(void) {
     const int BUTTON_X = INPUT_X + INPUT_WIDTH + 20;
     const int BUTTON_Y = INPUT_Y;
 
-    if (GUI_STATE.mouse_x >= BUTTON_X && GUI_STATE.mouse_x <= BUTTON_X + BUTTON_WIDTH &&
-        GUI_STATE.mouse_y >= BUTTON_Y && GUI_STATE.mouse_y <= BUTTON_Y + BUTTON_HEIGHT) {
+    struct ImButton connect_button = button_create("button-connect");
+    layout_component(&connect_button.component, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
+
+    if (button_is_hovered(&connect_button, GUI_STATE.mouse_x, GUI_STATE.mouse_y)) {
         glColor3f(0.7, 0.7, 0.7); // Hover color
     } else {
         glColor3f(1.0, 1.0, 1.0); // Normal color
     }
 
-    glBegin(GL_LINE_LOOP);
-    glVertex2f(BUTTON_X, BUTTON_Y);
-    glVertex2f(BUTTON_X + BUTTON_WIDTH, BUTTON_Y);
-    glVertex2f(BUTTON_X + BUTTON_WIDTH, BUTTON_Y + BUTTON_HEIGHT);
-    glVertex2f(BUTTON_X, BUTTON_Y + BUTTON_HEIGHT);
-    glEnd();
+    render_component(&connect_button.component);
 
     drawText("Connect", BUTTON_X + 10, BUTTON_Y + 23);
+
+    if (button_clicked(&connect_button, GUI_STATE.mouse_x, GUI_STATE.mouse_y, LEFT_MOUSE_BUTTON)) {
+        input_blur(&input);
+        GUI_STATE.screen = Configure;
+    }
 }
 
 void drawConfigure(void) {
@@ -110,6 +103,7 @@ void drawGame(void) {
 }
 
 void draw(void) {
+    im_begin_frame();
     glClear(GL_COLOR_BUFFER_BIT);
 
     switch (GUI_STATE.screen) {
@@ -128,10 +122,13 @@ void draw(void) {
 
     glFlush();
     glutSwapBuffers();
+    im_end_frame();
 }
 
 void specialKeyboardHandler(int key, int x, int y) {
-
+    (void) key;
+    (void) x;
+    (void) y;
 }
 
 void mouseMoveHandler(int x, int y) {
@@ -140,6 +137,9 @@ void mouseMoveHandler(int x, int y) {
 }
 
 void mouseHandler(int button, int state, int x, int y) {
+    GUI_STATE.mouse_x = x;
+    GUI_STATE.mouse_y = y;
+    im_mouse_button(button, state);
 }
 
 void reshape(int width, int height) {
