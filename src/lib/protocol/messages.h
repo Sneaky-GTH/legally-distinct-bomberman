@@ -76,7 +76,6 @@ def_degenerate_msg(pong);
 
 typedef struct {
     msg_common_fields;
-    uint8_t error_len; // TODO: non-standard
     char error_message[];
 } msg_ready_t;
 
