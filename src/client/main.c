@@ -13,7 +13,10 @@ void keyboardHandler(unsigned char key, int x, int y) {
     (void)y;
 
     switch (get_current_screen()) {
-#define X(name) case screen_##name: keyboard_##name(key, 0); break;
+#define X(name)                                                                                    \
+    case screen_##name:                                                                            \
+        keyboard_##name(key, 0);                                                                   \
+        break;
         XSCREENS
 #undef X
     default:
@@ -22,13 +25,15 @@ void keyboardHandler(unsigned char key, int x, int y) {
     }
 }
 
-
 void specialKeyboardHandler(int key, int x, int y) {
     (void)x;
     (void)y;
 
     switch (get_current_screen()) {
-#define X(name) case screen_##name: keyboard_##name(key, 1); break;
+#define X(name)                                                                                    \
+    case screen_##name:                                                                            \
+        keyboard_##name(key, 1);                                                                   \
+        break;
         XSCREENS
 #undef X
     default:
@@ -44,7 +49,10 @@ void draw(void) {
     glClear(GL_COLOR_BUFFER_BIT);
 
     switch (get_current_screen()) {
-#define X(name) case screen_##name: draw_##name(); break;
+#define X(name)                                                                                    \
+    case screen_##name:                                                                            \
+        draw_##name();                                                                             \
+        break;
         XSCREENS
 #undef X
     default:

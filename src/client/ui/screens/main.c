@@ -125,7 +125,8 @@ void draw_main() {
                 .server_address = "",
             };
 
-            strncpy(data.server_address, MAIN_STATE.server_address, sizeof(data.server_address) - 1);
+            strncpy(data.server_address, MAIN_STATE.server_address,
+                    sizeof(data.server_address) - 1);
             data.server_address[sizeof(data.server_address) - 1] = '\0';
 
             set_screen(screen_connecting, &data);
@@ -134,7 +135,8 @@ void draw_main() {
     }
 
     // Has the user clicked outside the input field?
-    if (consume_click(LEFT_MOUSE_BUTTON) && !is_mouse_over(&input.component, state->mouse_x, state->mouse_y)) {
+    if (consume_click(LEFT_MOUSE_BUTTON) &&
+        !is_mouse_over(&input.component, state->mouse_x, state->mouse_y)) {
         input_blur(&input);
     }
 }

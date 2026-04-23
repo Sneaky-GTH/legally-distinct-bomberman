@@ -1,7 +1,7 @@
-#define XSCREENS \
-    X(main) \
-    X(configure) \
-    X(connecting) \
+#define XSCREENS                                                                                   \
+    X(main)                                                                                        \
+    X(configure)                                                                                   \
+    X(connecting)                                                                                  \
     X(game)
 
 enum GuiScreen {
@@ -16,18 +16,18 @@ struct GuiState {
 };
 
 #define X(name) void draw_##name();
-    XSCREENS
+XSCREENS
 #undef X
 #define X(name) void keyboard_##name(unsigned char key, int is_special);
-    XSCREENS
+XSCREENS
 #undef X
 #define X(name) void init_##name(const void *data);
-    XSCREENS
+XSCREENS
 #undef X
 
 // Global accessor and modification functions for GUI state
 struct GuiState *get_gui_state(void);
-// Set the current screen and optionally pass data for initialization (e.g., server address for connecting screen)
+// Set the current screen and optionally pass data for initialization (e.g., server address for
+// connecting screen)
 void set_screen(enum GuiScreen screen, const void *data);
 enum GuiScreen get_current_screen(void);
-

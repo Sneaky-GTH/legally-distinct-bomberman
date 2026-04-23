@@ -16,7 +16,8 @@ static struct ConnectionState CONNECTION_STATE = {
 
 void init_connecting(const void *data) {
     const struct ConnectScreenData *connect_data = (const struct ConnectScreenData *)data;
-    strncpy(CONNECTION_STATE.server_address, connect_data->server_address, sizeof(CONNECTION_STATE.server_address) - 1);
+    strncpy(CONNECTION_STATE.server_address, connect_data->server_address,
+            sizeof(CONNECTION_STATE.server_address) - 1);
     CONNECTION_STATE.server_address[sizeof(CONNECTION_STATE.server_address) - 1] = '\0';
 }
 
