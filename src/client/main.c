@@ -8,17 +8,11 @@
 #define WINDOW_WIDTH 1080
 #define WINDOW_HEIGHT 720
 
-static struct GuiState GUI_STATE = {
-    .screen = screen_main,
-    .mouse_x = 0,
-    .mouse_y = 0,
-};
-
 void keyboardHandler(unsigned char key, int x, int y) {
     (void)x;
     (void)y;
 
-    switch (GUI_STATE.screen) {
+    switch (get_current_screen()) {
 #define X(name) case screen_##name: keyboard_##name(key, 0); break;
         XSCREENS
 #undef X
@@ -33,7 +27,7 @@ void specialKeyboardHandler(int key, int x, int y) {
     (void)x;
     (void)y;
 
-    switch (GUI_STATE.screen) {
+    switch (get_current_screen()) {
 #define X(name) case screen_##name: keyboard_##name(key, 1); break;
         XSCREENS
 #undef X
@@ -49,8 +43,8 @@ void draw(void) {
     im_begin_frame();
     glClear(GL_COLOR_BUFFER_BIT);
 
-    switch (GUI_STATE.screen) {
-#define X(name) case screen_##name: draw_##name(&GUI_STATE); break;
+    switch (get_current_screen()) {
+#define X(name) case screen_##name: draw_##name(); break;
         XSCREENS
 #undef X
     default:
@@ -64,13 +58,13 @@ void draw(void) {
 }
 
 void mouseMoveHandler(int x, int y) {
-    GUI_STATE.mouse_x = x;
-    GUI_STATE.mouse_y = y;
+    get_gui_state()->mouse_x = x;
+    get_gui_state()->mouse_y = y;
 }
 
 void mouseHandler(int button, int state, int x, int y) {
-    GUI_STATE.mouse_x = x;
-    GUI_STATE.mouse_y = y;
+    get_gui_state()->mouse_x = x;
+    get_gui_state()->mouse_y = y;
     im_mouse_button(button, state);
 }
 

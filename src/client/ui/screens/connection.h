@@ -1,1 +1,3 @@
-void set_address(const char *address);
+struct ConnectScreenData {
+    char server_address[256]; // TODO: dynamic string
+};

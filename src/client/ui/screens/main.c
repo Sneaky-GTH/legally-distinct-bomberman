@@ -34,6 +34,10 @@ int validate_server_address(const char *address) {
     return 1;
 }
 
+void init_main(const void *data) {
+    (void)data; // Unused
+}
+
 void keyboard_main(unsigned char key, int is_special) {
     if (is_special) {
         return;
@@ -47,7 +51,8 @@ void keyboard_main(unsigned char key, int is_special) {
     }
 }
 
-void draw_main(struct GuiState *state) {
+void draw_main() {
+    struct GuiState *state = get_gui_state();
     int timeSinceStart = glutGet(GLUT_ELAPSED_TIME);
 
     // Set text color to white
@@ -116,8 +121,15 @@ void draw_main(struct GuiState *state) {
     if (button_clicked(&connect_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
         input_blur(&input);
         if (validate_server_address(MAIN_STATE.server_address)) {
-            state->screen = screen_connecting;
-            set_address(MAIN_STATE.server_address);
+            struct ConnectScreenData data = {
+                .server_address = "",
+            };
+
+            strncpy(data.server_address, MAIN_STATE.server_address, sizeof(data.server_address) - 1);
+            data.server_address[sizeof(data.server_address) - 1] = '\0';
+
+            set_screen(screen_connecting, &data);
+            return;
         }
     }
 
