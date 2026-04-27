@@ -149,8 +149,9 @@ class WelcomeMessage(Message):
         server_id = cstr_de(data[3:23])
         status = uint8_de(data[23:24])
         clients = list[tuple[int, bool, str]]()  # Placeholder for client list parsing
-        current_byte = 24
-        for _ in range(4):  # Assuming a maximum of 4 clients for simplicity
+        client_count = uint8_de(data[24:25])
+        current_byte = 25
+        for _ in range(client_count):
             if current_byte + 21 > len(data):
                 raise NotEnoughDataError("Not enough data for client information")
             client_id = uint8_de(data[current_byte:current_byte+1])
@@ -167,7 +168,7 @@ class WelcomeMessage(Message):
         return WelcomeMessage(sender, target, server_id, status, clients), current_byte
 
     def encode(self) -> bytes:
-        data = self.base_encode() + cstr_en(self.server_id, pad=20) + uint8_en(self.status)
+        data = self.base_encode() + cstr_en(self.server_id, pad=20) + uint8_en(self.status) + uint8_en(len(self.clients))
         for client_id, ready_status, client_name in self.clients:
             data += uint8_en(client_id) + uint8_en(ready_status) + cstr_en(client_name, pad=30)
         return data
