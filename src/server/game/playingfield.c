@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "./playingfield.h"
+#include "server/game/playingfield.h"
 
-int init_playingField(struct playingField* field, int w, int h) {
+int init_playingField(struct playingField* field, uint8_t w, uint8_t h) {
     field->width = w;
     field->height = h;
 
@@ -38,7 +38,44 @@ void free_playingField(struct playingField* field) {
 void prepare_playingField(struct playingField *field) {
     for (int i = 0; i < field->height; i++) {
         for (int j = 0; j < field->width; j++) {
-            if ((j + i) % 2) CELL(field, j, i) = (uint8_t)'H';
+            //if ((j + i) % 2) CELL(field, j, i) = (uint8_t)'H';
         }
     }
 }
+
+
+uint8_t SAFE_GET_CELL(struct playingField* field, uint8_t x, uint8_t y) {
+    if (x < 0 || y < 0) {
+        return 'f';
+    }
+
+    if (x > field->width - 1 || y > field->height - 1) {
+        return 'f';
+    }
+
+    return CELL(field, x, y);
+}
+
+uint8_t SAFE_SET_CELL(struct playingField* field, uint8_t x, uint8_t y, uint8_t v) {
+    if (x < 0 || y < 0) {
+        return 'f';
+    }
+
+    if (x > field->width - 1 || y > field->height - 1) {
+        return 'f';
+    }
+
+    CELL(field, x, y) = v;
+    return 't';
+}
+
+
+uint8_t move_cell_contents(struct playingField* field, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
+    CELL(field, x2, y2) = CELL(field, x1, y1);
+    CELL(field, x1, y1) = '.';
+
+    return 't';
+}
+
+
+

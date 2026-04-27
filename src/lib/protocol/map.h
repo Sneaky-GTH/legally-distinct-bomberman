@@ -14,5 +14,6 @@ typedef enum {
     POWERUP_SPEED = 'A',
     POWERUP_SIZE = 'R',
     POWERUP_TIME = 'T',
-    POWERUP_COUNT = 'N'
+    POWERUP_COUNT = 'N',
+    EXPLOSION = 'X'
 } cell_types_t;
