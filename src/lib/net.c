@@ -17,7 +17,7 @@ int send_all(int sock, const uint8_t *buf, int len) {
     return 0;
 }
 
-int send_message(int sock, const struct Message *msg) {
+int send_message(int sock, const Message *msg) {
     uint8_t buf[4096];
     int len = write_message(buf, sizeof(buf), msg);
     if (len < 0) return len;
@@ -31,7 +31,7 @@ int send_message(int sock, const struct Message *msg) {
  * 
  *     uint8_t buf[4096]; // Pre-allocated buffer
  *     int valid_len = 0; // Tracks unparsed data length across calls
- *     struct Message msg;
+ *     Message msg;
  *     
  *     // In a loop...
  *     int bytes_consumed = recv_message(sock, buf, &valid_len, sizeof(buf), &msg);
@@ -44,7 +44,7 @@ int send_message(int sock, const struct Message *msg) {
  *         // Handle disconnect
  *     }
  */
-int recv_message(int sock, uint8_t *buf, int *buf_len, int buf_cap, struct Message *msg) {
+int recv_message(int sock, uint8_t *buf, int *buf_len, int buf_cap, Message *msg) {
     // First, try to parse from already buffered data
     int res = read_message(buf, *buf_len, msg);
     if (res > 0) {
@@ -75,7 +75,7 @@ int recv_message(int sock, uint8_t *buf, int *buf_len, int buf_cap, struct Messa
     return ERECVFULL;
 }
 
-void free_message(struct Message *msg) {
+void free_message(Message *msg) {
     if (!msg) return;
     if (msg->type == MSG_WELCOME) {
         if (msg->data.welcome.clients) {
