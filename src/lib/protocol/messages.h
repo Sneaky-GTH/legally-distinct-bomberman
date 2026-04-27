@@ -1,16 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-
-#define msg_common_fields                                                                          \
-    msg_type_t msg_type;                                                                           \
-    uint8_t sender_id;                                                                             \
-    uint8_t target_id
-
-#define def_degenerate_msg(name)                                                                   \
-    typedef struct {                                                                               \
-        msg_common_fields;                                                                         \
-    } msg_##name##_t;
+#include "./map.h"
 
 #ifndef bool
 #define bool uint8_t
@@ -32,6 +23,7 @@ typedef enum {
     MSG_PONG = 4,
     MSG_LEAVE = 5,
     MSG_ERROR = 6,
+    MSG_MAP = 7,
     MSG_SET_READY = 10,
     MSG_SET_STATUS = 20,
     MSG_WINNER = 23,
@@ -48,10 +40,9 @@ typedef enum {
 } msg_type_t;
 
 typedef struct {
-    msg_common_fields;
     char client_id[20];
     char client_name[30];
-} msg_hello_t;
+} data_hello_t;
 
 typedef struct {
     uint8_t client_id;
@@ -60,93 +51,111 @@ typedef struct {
 } clients_t;
 
 typedef struct {
-    msg_common_fields;
     char server_name[20];
     game_status_t status;
     uint8_t len;
-    clients_t clients[];
-} msg_welcome_t;
-
-def_degenerate_msg(leave);
-def_degenerate_msg(disconnect);
-def_degenerate_msg(ping);
-def_degenerate_msg(pong);
+    clients_t *clients;
+} data_welcome_t;
 
 typedef struct {
-    msg_common_fields;
-    char error_message[];
-} msg_ready_t;
-
-def_degenerate_msg(set_ready);
+} data_leave_t;
 
 typedef struct {
-    msg_common_fields;
+} data_disconnect_t;
+
+typedef struct {
+} data_ping_t;
+
+typedef struct {
+} data_pong_t;
+
+typedef struct {
+    char *error_message;
+} data_error_t;
+
+typedef struct {
+} data_set_ready_t;
+
+typedef struct {
     uint8_t status;
-} msg_set_status_t;
+} data_set_status_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t winner_id;
-} msg_winner_t;
+} data_winner_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t height;
     uint8_t width;
-    uint8_t map[];
-} msg_map_t;
+    cell_types_t *map; // cell_types_t maps to char
+} data_map_t;
 
 typedef struct {
-    msg_common_fields;
     direction_t direction;
-} msg_move_attempt_t;
+} data_move_attempt_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t player_id;
     uint16_t new_position;
-} msg_moved_t;
+} data_moved_t;
 
 typedef struct {
-    msg_common_fields;
     uint16_t position;
-} msg_bomb_attempt_t;
+} data_bomb_attempt_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t player_id;
     uint16_t position;
-} msg_bomb_t;
+} data_bomb_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t radius;
     uint16_t position;
-} msg_explosion_start_t;
+} data_explosion_t;
 
 typedef struct {
-    msg_common_fields;
-    uint16_t position;
-} msg_explosion_end_t;
-
-typedef struct {
-    msg_common_fields;
     uint8_t player_id;
-} msg_death_t;
+} data_death_t;
 
 typedef struct {
-    msg_common_fields;
     bonus_type_t bonus_type;
     uint16_t position;
-} msg_bonus_available_t;
+} data_bonus_available_t;
 
 typedef struct {
-    msg_common_fields;
     uint8_t player_id;
     uint16_t position;
-} msg_bonus_retrieved_t;
+} data_bonus_retrieved_t;
 
 typedef struct {
-    msg_common_fields;
     uint16_t position;
-} msg_block_destroyed_t;
+} data_block_destroyed_t;
+
+typedef struct Message {
+    msg_type_t type;
+    uint8_t sender_id;
+    uint8_t target_id;
+
+    union {
+        data_hello_t hello;
+        data_welcome_t welcome;
+        data_leave_t leave;
+        data_disconnect_t disconnect;
+        data_ping_t ping;
+        data_pong_t pong;
+        data_error_t error;
+        data_set_ready_t set_ready;
+        data_set_status_t set_status;
+        data_winner_t winner;
+        data_map_t map;
+        data_move_attempt_t move_attempt;
+        data_moved_t moved;
+        data_bomb_attempt_t bomb_attempt;
+        data_bomb_t bomb;
+        data_explosion_t explosion;
+        data_death_t death;
+        data_bonus_available_t bonus_available;
+        data_bonus_retrieved_t bonus_retrieved;
+        data_block_destroyed_t block_destroyed;
+    } data;
+} Message;
