@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include "./map.h"
 
 #ifndef bool
 #define bool uint8_t
@@ -86,7 +87,7 @@ typedef struct {
 typedef struct {
     uint8_t height;
     uint8_t width;
-    uint8_t *map;
+    cell_types_t *map; // cell_types_t maps to char
 } data_map_t;
 
 typedef struct {
