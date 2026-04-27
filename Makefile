@@ -59,8 +59,8 @@ LIB_ALL_CF    := $(CFLAGS) $(LIB_CFLAGS)
 
 # Source and object files
 CLIENT_SRCS := $(shell find $(CLIENT_SRC_DIR) -name '*.c')
-SERVER_SRCS := $(wildcard $(SERVER_SRC_DIR)/*.c)
-LIB_SRCS    := $(wildcard $(LIB_SRC_DIR)/*.c)
+SERVER_SRCS := $(shell find $(SERVER_SRC_DIR) -name '*.c')
+LIB_SRCS    := $(shell find $(LIB_SRC_DIR) -name '*.c')
 FORMAT_SRCS := $(shell find $(SRC_DIR) -type f \( -name '*.c' -o -name '*.h' \))
 
 CLIENT_OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(CLIENT_SRCS))
