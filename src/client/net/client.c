@@ -468,6 +468,19 @@ static void network_thread_main() {
                         }
                     });
 
+                    // Send the rest of the players
+                    for (int i = 0; i < recv_msg.data.welcome.len; i++) {
+                        if (recv_msg.data.welcome.clients[i].client_id == CLIENT_STATE.client_id) {
+                            continue; // Skip ourselves, already added above
+                        }
+                        enqueue_event(&(struct GameEvent) {
+                            .type = EVENT_NEW_PLAYER,
+                            .new_player = {
+                                .player_id = recv_msg.data.welcome.clients[i].client_id,
+                            },
+                        });
+                    }
+
                     break;
                 case MSG_DISCONNECT:
                     fprintf(stderr, "Server disconnected us\n");
