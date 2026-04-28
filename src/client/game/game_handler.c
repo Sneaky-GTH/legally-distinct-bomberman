@@ -7,6 +7,12 @@
 #include <sys/eventfd.h>
 #include <unistd.h>
 
+#ifdef DEBUG
+#define LOG(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#else
+#define LOG(fmt, ...)
+#endif
+
 static struct GameState GAME_STATE = {
     .width = 0,
     .height = 0,
@@ -288,6 +294,7 @@ void game_thread() {
         dequeue_event(&event);
         switch (event.type) {
             case EVENT_MOVE: {
+                LOG("[GAME] Processing event: EVENT_MOVE");
                 struct Player* player = find_player_by_id(event.move.player_id);
                 if (!player) break;
                 player->x = TILE_X(event.move.new_position);
@@ -295,6 +302,7 @@ void game_thread() {
                 break;
             }
             case EVENT_MOVE_ATTEMPT: {
+                LOG("[GAME] Processing event: EVENT_MOVE_ATTEMPT");
                 // Check if we can even move in that direction before sending the attempt to the server
                 struct Player* player = find_player_by_id(GAME_STATE.player_id);
                 if (!player) break;
@@ -349,6 +357,7 @@ void game_thread() {
             }
 
             case EVENT_PLACE_BOMB_ATTEMPT: {
+                LOG("[GAME] Processing event: EVENT_PLACE_BOMB_ATTEMPT");
                 struct Player* player = find_player_by_id(GAME_STATE.player_id);
                 if (!player) break;
                 if (GAME_STATE.field[POS(player->x, player->y)] == BOMB) {
@@ -360,10 +369,12 @@ void game_thread() {
                 break;
             }
             case EVENT_PLACE_BOMB: {
+                LOG("[GAME] Processing event: EVENT_PLACE_BOMB");
                 GAME_STATE.field[event.place_bomb.position] = BOMB;
                 break;
             }
             case EVENT_MAP: {
+                LOG("[GAME] Processing event: EVENT_MAP");
                 GAME_STATE.width = event.map.width;
                 GAME_STATE.height = event.map.height;
                 if (GAME_STATE.field) {
@@ -392,6 +403,7 @@ void game_thread() {
             }
 
             case EVENT_NEW_PLAYER: {
+                LOG("[GAME] Processing event: EVENT_NEW_PLAYER");
                 if (find_player_by_id(event.new_player.player_id)) {
                     break; // Player already exists, do nothing
                 }
@@ -404,38 +416,55 @@ void game_thread() {
             }
 
             case EVENT_PLAYER_REMOVED: {
+                LOG("[GAME] Processing event: EVENT_PLAYER_REMOVED");
                 remove_player(event.player_removed.player_id);
                 break;
             }
 
             case EVENT_PLAYER_STATUS: {
+                LOG("[GAME] Processing event: EVENT_PLAYER_STATUS");
                 struct Player* player = find_player_by_id(event.player_status.player_id);
                 if (!player) break;
                 player->ready = event.player_status.ready;
                 break;
             }
 
+            case EVENT_SELF_READY: {
+                LOG("[GAME] Processing event: EVENT_SELF_READY");
+                struct Player* player = find_player_by_id(GAME_STATE.player_id);
+                if (!player) break;
+                player->ready = true;
+
+                enqueue_net_event(&(struct GameEvent) { .type = EVENT_SELF_READY });
+                break;
+            }
+
             case EVENT_STATUS_UPDATE: {
+                LOG("[GAME] Processing event: EVENT_STATUS_UPDATE");
                 GAME_STATE.status = event.status_update.status;
                 break;
             }
 
             case EVENT_WINNER: {
+                LOG("[GAME] Processing event: EVENT_WINNER");
                 // TODO: display winner in the UI using this event
                 break;
             }
 
             case EVENT_EXPLOSION_START: {
+                LOG("[GAME] Processing event: EVENT_EXPLOSION_START");
                 start_explosion(event.explosion_start.position, event.explosion_start.radius);
                 break;
             }
 
             case EVENT_EXPLOSION_END: {
+                LOG("[GAME] Processing event: EVENT_EXPLOSION_END");
                 end_explosion(event.explosion_end.position, event.explosion_end.radius);
                 break;
             }
 
             case EVENT_DEATH: {
+                LOG("[GAME] Processing event: EVENT_DEATH");
                 struct Player* player = find_player_by_id(event.death.player_id);
                 if (!player) break;
                 player->alive = false;
@@ -443,16 +472,19 @@ void game_thread() {
             }
 
             case EVENT_BONUS_AVAILABLE: {
+                LOG("[GAME] Processing event: EVENT_BONUS_AVAILABLE");
                 // TODO: Handle bonus available event
                 break;
             }
 
             case EVENT_BONUS_RETRIEVED: {
+                LOG("[GAME] Processing event: EVENT_BONUS_RETRIEVED");
                 // TODO: Handle bonus retrieved event
                 break;
             }
 
             case EVENT_BLOCK_DESTROYED: {
+                LOG("[GAME] Processing event: EVENT_BLOCK_DESTROYED");
                 cell_types_t cell = GAME_STATE.field[event.block_destroyed.position];
                 if (cell == SOFT_WALL) {
                     GAME_STATE.field[event.block_destroyed.position] = EMPTY;
@@ -461,6 +493,7 @@ void game_thread() {
             }
 
             case EVENT_RESET: {
+                LOG("[GAME] Processing event: EVENT_RESET");
                 if (GAME_STATE.field) {
                     free(GAME_STATE.field);
                     GAME_STATE.field = NULL;

@@ -1,3 +1,4 @@
+#pragma once
 #include <bool.h>
 #include <protocol/map.h>
 #include <stdint.h>

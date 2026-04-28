@@ -1,11 +1,11 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <GL/glut.h>
-#include "../text.h"
 #include "../immediate.h"
-#include "./screens.h"
+#include "../text.h"
 #include "./connection.h"
+#include "./screens.h"
+#include <GL/glut.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 struct MainState {
     int is_address_selected;

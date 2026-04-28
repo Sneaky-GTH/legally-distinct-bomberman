@@ -412,6 +412,7 @@ static void network_thread_main() {
     int valid_len = 0; // Tracks unparsed data length across calls
     Message recv_msg;
     
+    buf[0] = '\0';
     int epfd = epoll_create1(0);
     if (epfd < 0) {
         perror("epoll_create1");
@@ -464,7 +465,7 @@ static void network_thread_main() {
 
                     break;
                 case MSG_DISCONNECT:
-                    fprintf(stderr, "Server disconnected during handshake\n");
+                    fprintf(stderr, "Server disconnected us\n");
                     if (CLIENT_STATE.state == HANDSHAKE) {
                         strcpy(status_message, "Server cannot accept our connection yet");
                     } else {
@@ -531,6 +532,16 @@ static void network_thread_main() {
                                     goto shutdown;
                                 }
                                 break;
+                            case EVENT_SELF_READY:
+                                if (send_message(sock, &(Message) {
+                                    .type = MSG_SET_READY,
+                                    .sender_id = CLIENT_STATE.client_id,
+                                    .target_id = 255, // Server
+                                }) < 0) {
+                                    fprintf(stderr, "Failed to send ready status message\n");
+                                    goto shutdown;
+                                }
+                                break;
                             default:
                                 fprintf(stderr, "Unknown event type from game thread: %d\n", net_evt.type);
                                 break;
@@ -540,7 +551,7 @@ static void network_thread_main() {
             } else if (events[i].data.fd == sock) {
                 int n = recv(sock, buf + valid_len, sizeof(buf) - valid_len, 0);
                 if (n == 0) {
-                    fprintf(stderr, "Connection closed by server during handshake\n");
+                    fprintf(stderr, "Connection closed by server\n");
                     strcpy(status_message, "Connection closed by server");
                     goto shutdown;
                 } else if (n < 0) {

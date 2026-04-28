@@ -846,7 +846,15 @@ def handle_client(client_socket: socket.socket, addr):
     client_id = None  # Will be set when we receive a HelloMessage from the client
     try:
         while True:
-            data = client_socket.recv(1024)
+            try:
+                data = client_socket.recv(1024)
+            except socket.timeout:
+                send_message(
+                    client_socket,
+                    PingMessage(sender_id=255, target_id=client_id if client_id is not None else 0)
+                )
+                continue  # Continue to wait for data after sending ping
+            
             if not data:
                 print(f"Client {addr} disconnected.")
                 break
@@ -885,8 +893,6 @@ def handle_client(client_socket: socket.socket, addr):
                     break
 
                 handle_message(client_socket, message)  # Handle the message based on its type
-    except socket.timeout:
-        print(f"Client {addr} timed out.")
 
     except MessageHandleError as e:
         print(f"Message handling error for client {addr}: {e}")

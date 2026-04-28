@@ -8,15 +8,16 @@
 #include <string.h>
 
 void init_connecting(const void *data) {
-    enum ConnectionState state = get_connection_state();
-    if (state != DISCONNECTED) {
-        fprintf(stderr, "Attempted to init connection screen while connection is active");
-        return;
+    if (data != NULL) {
+        enum ConnectionState state = get_connection_state();
+        if (state != DISCONNECTED) {
+            fprintf(stderr, "Attempted to init connection screen while connection is active");
+            return;
+        }
+
+        struct ConnectScreenData conn_data = *(struct ConnectScreenData*) data; 
+        spawn_network_thread(conn_data.server_address);
     }
-
-    struct ConnectScreenData conn_data = *(struct ConnectScreenData*) data; 
-
-    spawn_network_thread(conn_data.server_address);
 }
 
 void draw_connecting() {
@@ -38,7 +39,7 @@ void draw_connecting() {
             drawText("Performing handshake...", 40, 120);
             break;
         case DISCONNECTED:
-            drawText("An error occurred. View the console for more information.", 40, 120);
+            drawText("Disconnected.", 40, 120);
             break;
         case TEARDOWN:
             drawText("Shutting down connection...", 40, 120);

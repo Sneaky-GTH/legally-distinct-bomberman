@@ -3,8 +3,8 @@
 #include <net.h>
 
 struct GameEvent {
-    // *_ATTEMPT messages are recieved from render thread, may be rejected by server
-    // Other messages are recieved from network thread, guaranteed to be valid and should be processed by game thread
+    // *_ATTEMPT messages are received from render thread, may be rejected by server
+    // Other messages are received from network thread, guaranteed to be valid and should be processed by game thread
     enum {
         EVENT_MOVE,
         EVENT_MOVE_ATTEMPT,
@@ -14,6 +14,7 @@ struct GameEvent {
         EVENT_NEW_PLAYER,
         EVENT_PLAYER_REMOVED,
         EVENT_PLAYER_STATUS,
+        EVENT_SELF_READY, // No data, signals that we should toggle our own ready status and send update to server
         EVENT_STATUS_UPDATE,
         EVENT_RESET, // No data, signals game reset
         EVENT_WINNER,

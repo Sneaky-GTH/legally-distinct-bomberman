@@ -1,5 +1,5 @@
-#include <string.h>
 #include "../immediate.h"
+#include <string.h>
 
 void input_focus(struct ImInput *input) {
     if (input == NULL || input->component.id == NULL) {
