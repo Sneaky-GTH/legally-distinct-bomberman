@@ -18,12 +18,17 @@ void *tx_thread(void *arg) {
 
     while (1) {
         // blocks waiting for game thread to push something
-        pthread_cond_wait(&args->output->not_empty, &args->output->lock);
+        pthread_mutex_lock(&args->output->lock);
+        while (args->output->count == 0) {
+            pthread_cond_wait(&args->output->not_empty, &args->output->lock);
+        }
 
 
         ClientMessage msg = args->output->messages[args->output->head];
         args->output->head = (args->output->head + 1) % MAX_QUEUE;
         args->output->count--;
+
+        pthread_mutex_unlock(&args->output->lock);
 
         printf("TX INFO: TX thread has received a message, trying to send it...\n");
 

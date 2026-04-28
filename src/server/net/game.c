@@ -155,7 +155,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
         // --------------- MSG_MOVE_ATTEMPT ---------------
         case MSG_MOVE_ATTEMPT:
             res = srv_process_move_attempt(&gamestate, &rx_msg->msg);
-            if (res != 0) return;
+            if (res == -1) return;
 
             tx_msg = (Message){
                 .type = MSG_MOVED,
@@ -222,7 +222,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
                 .sender_id = 255,
                 .target_id = 254,
                 .data.set_status = {
-                    .status = res,
+                    .status = 1,
                 },
             };
 
