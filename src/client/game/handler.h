@@ -1,5 +1,6 @@
 #pragma once
 #include <net.h>
+#include <bool.h>
 
 struct GameEvent {
     // *_ATTEMPT messages are recieved from render thread, may be rejected by server
@@ -15,13 +16,19 @@ struct GameEvent {
         EVENT_PLAYER_STATUS,
         EVENT_STATUS_UPDATE,
         EVENT_RESET, // No data, signals game reset
+        EVENT_WINNER,
+        EVENT_EXPLOSION_START,
+        EVENT_EXPLOSION_END,
+        EVENT_DEATH,
+        EVENT_BONUS_AVAILABLE,
+        EVENT_BONUS_RETRIEVED,
+        EVENT_BLOCK_DESTROYED,
     } type;
 
     union {
         struct {
             uint8_t player_id;
-            uint8_t x;
-            uint8_t y;
+            uint16_t new_position;
         } move;
 
         struct {
@@ -29,9 +36,13 @@ struct GameEvent {
         } move_attempt;
 
         struct {
-            uint8_t x;
-            uint8_t y;
+            uint16_t position;
         } place_bomb;
+
+        struct {
+            uint16_t position;
+            uint8_t radius;
+        } explosion_start;
 
         struct {
             uint8_t width;
@@ -41,7 +52,7 @@ struct GameEvent {
 
         struct {
             uint8_t player_id;
-            char name[256];
+            char name[30];
         } new_player;
 
         struct {
@@ -50,9 +61,44 @@ struct GameEvent {
 
         struct {
             uint8_t player_id;
+            bool ready; // true if player is ready, false otherwise
+        } player_status;
+
+        struct {
             uint8_t status; // 0 = lobby, 1 = game in progress, 2 = game ended
         } status_update;
+
+        struct {
+            uint8_t winner_id;
+        } winner;
+
+        struct {
+            uint8_t radius;
+            uint16_t position;
+        } explosion_end;
+
+        struct {
+            uint8_t player_id;
+        } death;
+
+        struct {
+            bonus_type_t bonus_type;
+            uint16_t position;
+        } bonus_available;
+
+        struct {
+            uint8_t player_id;
+            uint16_t position;
+        } bonus_retrieved;
+
+        struct {
+            uint16_t position;
+        } block_destroyed;
     };
 };
 
-void enqueue_event(const struct GameEvent *events);
+void enqueue_event(const struct GameEvent *event);
+// If an event is available, writes it to out_event and returns true. Otherwise, returns false.
+bool dequeue_net_event(struct GameEvent *event);
+int get_net_event_fd(void);
+

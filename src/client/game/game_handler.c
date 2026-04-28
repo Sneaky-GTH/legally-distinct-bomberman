@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <pthread.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
 #include "./handler.h"
 #include "./state.h"
 #include <string.h> // Why is memcpy in string.h and not in something like memory.h what the fuck??
@@ -37,6 +39,22 @@ static struct EventQueue event_queue = {
     .not_empty = PTHREAD_COND_INITIALIZER
 };
 
+static struct EventQueue net_event_queue = {
+    .head = NULL,
+    .tail = NULL,
+    .lock = PTHREAD_MUTEX_INITIALIZER,
+    .not_empty = PTHREAD_COND_INITIALIZER, // Actually unused
+};
+
+static int net_event_fd = -1;
+
+int get_net_event_fd(void) {
+    if (net_event_fd == -1) {
+        net_event_fd = eventfd(0, EFD_CLOEXEC | EFD_NONBLOCK);
+    }
+    return net_event_fd;
+}
+
 void enqueue_event(const struct GameEvent *event) {
     pthread_mutex_lock(&event_queue.lock);
 
@@ -72,6 +90,47 @@ static void dequeue_event(struct GameEvent *out_event) {
 
     free(node);
     pthread_mutex_unlock(&event_queue.lock);
+}
+
+static void enqueue_net_event(const struct GameEvent *event) {
+    pthread_mutex_lock(&net_event_queue.lock);
+
+    struct EventQueueNode *new_node = malloc(sizeof(struct EventQueueNode));
+    memcpy(&new_node->event, event, sizeof(struct GameEvent));
+    new_node->next = NULL;
+
+    if (net_event_queue.tail) {
+        net_event_queue.tail->next = new_node;
+    } else {
+        net_event_queue.head = new_node;
+    }
+    net_event_queue.tail = new_node;
+
+    uint64_t one = 1;
+    write(get_net_event_fd(), &one, sizeof(one));
+
+    pthread_cond_signal(&net_event_queue.not_empty);
+    pthread_mutex_unlock(&net_event_queue.lock);
+}
+
+bool dequeue_net_event(struct GameEvent *out_event) {
+    pthread_mutex_lock(&net_event_queue.lock);
+
+    if (net_event_queue.head == NULL) {
+        pthread_mutex_unlock(&net_event_queue.lock);
+        return false;
+    }
+
+    struct EventQueueNode *node = net_event_queue.head;
+    memcpy(out_event, &node->event, sizeof(struct GameEvent));
+    net_event_queue.head = node->next;
+    if (net_event_queue.head == NULL) {
+        net_event_queue.tail = NULL;
+    }
+
+    free(node);
+    pthread_mutex_unlock(&net_event_queue.lock);
+    return true;
 }
 
 void game_thread() {
