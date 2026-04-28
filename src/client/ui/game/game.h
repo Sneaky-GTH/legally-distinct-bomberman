@@ -1,3 +1,3 @@
 #include "../../game/state.h"
 
-void draw_game();
+void draw_game_board();

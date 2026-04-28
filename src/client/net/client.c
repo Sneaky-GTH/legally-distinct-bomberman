@@ -170,6 +170,10 @@ static int create_connection(int *out_sock) {
     return 0;
 }
 
+static void handle_message(const Message *msg, int sock) {
+    // TODO
+}
+
 static void network_thread_main() {
     // SIGUSR2 is used to signal the thread to shut down
     signal(SIGUSR2, handle_sigusr2);
@@ -184,7 +188,7 @@ static void network_thread_main() {
 
     strcpy(status_message, "Connection established! Performing handshake...");
 
-    const Message handshake_msg = {
+    Message send_msg = {
         .type = MSG_HELLO,
         .sender_id = 0, // Will be assigned by server
         .target_id = 255, // Server
@@ -194,14 +198,67 @@ static void network_thread_main() {
         },
     };
 
-    if (send_message(sock, &handshake_msg) < 0) {
+    if (send_message(sock, &send_msg) < 0) {
         fprintf(stderr, "Failed to send handshake message\n");
         close(sock);
         strcpy(status_message, "Failed to perform handshake");
         return;
     }
 
+    uint8_t buf[4096]; // Pre-allocated buffer
+    int valid_len = 0; // Tracks unparsed data length across calls
+    Message recv_msg;
+    
+    for (;;) {
+        int bytes_consumed = recv_message(sock, buf, &valid_len, sizeof(buf), &recv_msg);
+        
+        if (bytes_consumed > 0) {
+            // Successfully received and parsed message! (buffer shifts automatically)
+            printf("Received message type: %d\n", recv_msg.type);
 
+            switch (recv_msg.type) {
+                case MSG_WELCOME:
+                    if (CLIENT_STATE.state != HANDSHAKE) {
+                        fprintf(stderr, "Received WelcomeMessage while not in handshake state\n");
+                        strcpy(status_message, "Unexpected message during handshake");
+                        goto shutdown;
+                    }
+
+                    CLIENT_STATE.state = ESTABLISHED; printf("CLIENT_STATE.state = ESTABLISHED;\n");
+                    strcpy(status_message, "Handshake successful! Entering lobby...");
+                    break;
+                case MSG_DISCONNECT:
+                    fprintf(stderr, "Server disconnected during handshake\n");
+                    if (CLIENT_STATE.state == HANDSHAKE) {
+                        strcpy(status_message, "Server cannot accept our connection yet");
+                    } else {
+                        strcpy(status_message, "Server disconnected");
+                    }
+                    goto shutdown;
+                default:
+                    handle_message(&recv_msg, sock);
+                    break;
+            }
+
+            free_message(&recv_msg);
+        } else if (bytes_consumed == ERECVCLOSED) {
+            fprintf(stderr, "Connection closed by server during handshake\n");
+            strcpy(status_message, "Connection closed by server");
+            break;
+        }
+    }
+
+    shutdown:
+
+    send_msg = (Message) {
+        .type = MSG_LEAVE,
+        .sender_id = 0,
+        .target_id = 255,
+    };
+
+    send_message(sock, &send_msg); // Best effort to notify server of disconnect, but we don't really care about the result since we're shutting down anyway
+
+    close(sock);
 }
 
 static void network_thread_wrapper() {

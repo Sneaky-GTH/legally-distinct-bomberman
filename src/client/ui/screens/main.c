@@ -14,9 +14,9 @@ struct MainState {
 };
 
 static struct MainState MAIN_STATE = {
-    .is_address_selected =
-        1, // Enable by default (TODO: Remove this when input handling is implemented)
-    .server_address = ""};
+    .is_address_selected = 0,
+    .server_address = "localhost:12345",
+};
 
 static struct ImInput server_address_input(void) {
     return input_create("input-id-1", MAIN_STATE.server_address, sizeof(MAIN_STATE.server_address));

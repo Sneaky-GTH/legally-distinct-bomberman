@@ -80,12 +80,12 @@ class DegenerateMessage(Message):
     # ...
     # No additional data
 
-    @staticmethod
-    def decode(data: bytes) -> tuple["DegenerateMessage", int]:
+    @classmethod
+    def decode(cls, data: bytes) -> tuple["DegenerateMessage", int]:
         if len(data) < 3:
-            raise NotEnoughDataError("Not enough data to decode DegenerateMessage")
+            raise NotEnoughDataError(f"Not enough data to decode {cls.__name__}")
         message_type, sender, target = Message.base_decode(data)
-        return DegenerateMessage(sender, target), 3
+        return cls(sender, target), 3
 
     def encode(self) -> bytes:
         return self.base_encode()
@@ -546,10 +546,13 @@ class BonusAvailableMessage(Message):
         if len(data) < 6:
             raise NotEnoughDataError("Not enough data to decode BonusAvailableMessage")
         bonus_type = uint8_de(data[3:4])
-        if bonus_type not in (ord('A'), ord('R'), ord('T')):
+        if bonus_type not in (ord('A'), ord('R'), ord('T'), ord('N')):
             raise ValueError(f"Invalid bonus type for BonusAvailableMessage: {bonus_type}")
         position = uint16_de(data[4:6])
         return BonusAvailableMessage(sender, target, bonus_type, position), 6
+
+    def encode(self) -> bytes:
+        return self.base_encode() + uint8_en(self.bonus_type) + uint16_en(self.position)
 
 class BonusRetrievedMessage(Message):
     # ...
@@ -688,6 +691,33 @@ def send_message(client_socket: socket.socket, message: Message):
     print(f"Sending message: {message}")
     client_socket.sendall(message.encode())
 
+def encode_map(map: list[str]): # Helper function to encode a map represented as a list of strings into the cell type format used in MapMessage
+    cell_mapping = {
+        '.': 0,
+        'H': ord('H'),
+        'S': ord('S'),
+        'B': ord('B'),
+        '1': ord('1'),
+        '2': ord('2'),
+        '3': ord('3'),
+        '4': ord('4'),
+        '5': ord('5'),
+        '6': ord('6'),
+        '7': ord('7'),
+        '8': ord('8'),
+        'A': ord('A'),
+        'R': ord('R'),
+        'T': ord('T'),
+        'N': ord('N'),
+    }
+    cells = []
+    for row in map:
+        for cell in row:
+            if cell not in cell_mapping:
+                raise ValueError(f"Invalid cell character in map: '{cell}'")
+            cells.append(cell_mapping[cell])
+    return cells
+
 def handle_message(client_socket: socket.socket, message: Message):
     print(f"Handling message: {message}")
 
@@ -695,6 +725,8 @@ def handle_message(client_socket: socket.socket, message: Message):
         print(f"Received HelloMessage from client {message.sender_id} with ID '{message.id}' and name '{message.name}'")
         welcome_msg = WelcomeMessage(sender_id=255, target_id=message.sender_id, server_id="Test Server", status=0, clients=[(message.sender_id, False, message.name)])
         send_message(client_socket, welcome_msg)
+        status_message = SetStatusMessage(sender_id=255, target_id=message.sender_id, new_status=0) # Example: set status to waiting (0)
+        send_message(client_socket, status_message)
         return
 
     if isinstance(message, WelcomeMessage):
@@ -721,7 +753,36 @@ def handle_message(client_socket: socket.socket, message: Message):
 
     if isinstance(message, SetReadyMessage):
         print(f"Received SetReadyMessage from client {message.sender_id}")
-        return # TODO
+        status_message = SetStatusMessage(sender_id=255, target_id=message.sender_id, new_status=1) # Example: set status to in-game (1)
+        send_message(client_socket, status_message)
+
+        map_message = MapMessage(
+            sender_id=255,
+            target_id=message.sender_id,
+            width=20,
+            height=15,
+            cells=encode_map([
+                "1..H............H..2",
+                "...H.HHHHHHHHHH.H...",
+                "...S.H........H.S...",
+                "HHSS.H.HHHHHH.H.SSHH",
+                ".....H.S....H.S.....",
+                ".H...H.S....H.S...H.",
+                ".H...H.S....H.S...H.",
+                ".H...H.HHHHHH.H...H.",
+                ".H...S.H....S.H...H.",
+                ".H...S.H....S.H...H.",
+                ".....S.H....S.H.....",
+                "HHSS.H.HHHHHH.H.SSHH",
+                "...S.H........H.S...",
+                "...H.HHHHHHHHHH.H...",
+                "4..H............H..3",
+            ])
+        )
+
+        send_message(client_socket, map_message)
+
+        return
 
     if isinstance(message, SetStatusMessage):
         print(f"Received SetStatusMessage from client {message.sender_id} with new status {message.new_status}")
