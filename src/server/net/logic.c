@@ -1,10 +1,39 @@
 #include "server/net/logic.h"
 #include "server/net/args.h"
+#include <stdio.h>
 #include <protocol/messages.h>
 #include <pthread.h>
 
-void process_action(struct Message* msg) {
-    return;
+void process_action(ClientMessage* msg, MessageQueue* output) {
+    printf("Processing a message!\n");
+    printf("This message has the type: %d\n", msg->msg.type);
+
+    struct Message send_msg = {
+        .type = MSG_WELCOME,
+        .sender_id = 255, // Will be assigned by server
+        .target_id = 0, // Server
+        .data.welcome = {
+            .server_name = "bomboclat-express",
+            .status = GAME_LOBBY,
+            .len = 0,
+            .clients = NULL
+        },
+    };
+
+    ClientMessage newmsg = {
+        .msg = send_msg,
+        .fd = msg->fd
+    };
+
+    pthread_mutex_lock(&output->lock);
+    output->messages[output->tail] = newmsg;
+    output->tail = (output->tail + 1) % MAX_QUEUE;
+    output->count++;
+    pthread_cond_signal(&output->not_empty);
+    pthread_mutex_unlock(&output->lock);
+
+    printf("Message added to TX queue, good luck!\n");
+
 }
 
 void *game_thread(void* arg) {
@@ -26,13 +55,14 @@ void *game_thread(void* arg) {
             pthread_cond_timedwait(&args->input->not_empty, &args->input->lock, &deadline);
         }
 
-        Message msg = args->input->messages[args->input->head];
+        ClientMessage msg = args->input->messages[args->input->head];
         args->input->head = (args->input->head + 1) % MAX_QUEUE;
         args->input->count--;
 
         pthread_mutex_unlock(&args->input->lock);
 
-        process_action(&msg);
+        process_action(&msg, args->output);
+
     }
     return NULL;
 }

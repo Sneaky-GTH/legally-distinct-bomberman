@@ -7,7 +7,12 @@
 #define MAX_QUEUE 256
 
 typedef struct {
-    Message messages[MAX_QUEUE];
+    Message msg;
+    int fd;
+} ClientMessage;
+
+typedef struct {
+    ClientMessage messages[MAX_QUEUE];
     int head;
     int tail;
     int count;
@@ -16,8 +21,13 @@ typedef struct {
 } MessageQueue;
 
 typedef struct {
-    MessageQueue *input;
     int epfd;
+    int server_fd;
+} ServerHandle;
+
+typedef struct {
+    MessageQueue *input;
+    ServerHandle sh;
 } RxArgs;
 
 typedef struct {
