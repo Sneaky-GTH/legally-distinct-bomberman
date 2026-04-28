@@ -12,11 +12,13 @@
 typedef struct Client {
     Player p;
     int fd;
-    int ready;
+    int is_ready;
+    char name[30];
 } Client;
 
 typedef struct GameState {
     Client clients[MAX_CLIENTS];
+    int client_count;
     PlayingField wallmap;
     PlayingField playermap;
     Explosion* explosions;
@@ -25,9 +27,6 @@ typedef struct GameState {
     int status;
 } GameState;
 
-
-int add_new_client(Client clients[MAX_CLIENTS], int fd);
-int remove_client(Client clients[MAX_CLIENTS], int id);
 
 void send_to_client(int c, struct Message msg, MessageQueue* output);
 void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue* output);

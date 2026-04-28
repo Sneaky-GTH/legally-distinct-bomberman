@@ -4,36 +4,9 @@
 #include <stdio.h>
 #include <protocol/messages.h>
 #include <pthread.h>
+#include <string.h>
 
 GameState gamestate;
-
-int add_new_client(Client clients[MAX_CLIENTS], int fd) {
-
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].p.id == 0) {
-            clients[i].fd = fd;
-            clients[i].p.id = i;
-            clients[i].ready = 0;
-            return i;
-        }
-    }
-
-    return -1;
-
-}
-
-int remove_client(Client clients[MAX_CLIENTS], int fd) {
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        if (clients[i].p.id == i) {
-            clients[i].fd = 0;
-            clients[i].ready = 0;
-            reset_player(&clients[i].p, i, 0, 0);
-            return i;
-        }
-    }
-
-    return -1;
-}
 
 void send_to_client(int fd, Message msg, MessageQueue* output) {
 
@@ -58,36 +31,67 @@ void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].p.id == 0) continue;
         send_to_client(clients[i].fd, msg, output);
+        printf("GAME INFO: Sending message to TX queue for client: %d\n", clients[i].p.id);
+    }
+}
+
+
+void print_clients(GameState* game) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        printf("GAME DEBUG: Client: %d\n", game->clients[i].p.id);
     }
 }
 
 
 void process_action(ClientMessage* rx_msg, MessageQueue* output) {
     printf("GAME INFO: Game thread is processing a message!\n");
-    printf("This message has the type: %d\n", rx_msg->msg.type);
+    printf("GAME INFO: This message has the type: %d\n", rx_msg->msg.type);
 
     Message tx_msg;
     uint8_t res;
+
+    print_clients(&gamestate);
 
     switch(rx_msg->msg.type) {
 
         // --------------- MSG_HELLO ---------------
         case MSG_HELLO:
-            srv_process_hello(&gamestate, &rx_msg->msg);
+
+            int new_id = srv_process_hello(&gamestate, rx_msg);
+
+            clients_t client_buf[MAX_CLIENTS];
+
+            for (int i = 0; i < gamestate.client_count; i++) {
+                client_buf[i].client_id = gamestate.clients[i].p.id;
+                client_buf[i].is_ready = gamestate.clients[i].is_ready;
+                strncpy(client_buf[i].client_name, gamestate.clients[i].name, 30);
+            }
 
             tx_msg = (Message){
                 .type = MSG_WELCOME,
                 .sender_id = 255,
-                .target_id = add_new_client(gamestate.clients, rx_msg->fd),
+                .target_id = new_id,
                 .data.welcome = {
-                    .server_name = "bomboclat-express",
-                    .status = GAME_LOBBY,
-                    .len = 0,
-                    .clients = NULL
-                },
+                    .status = gamestate.status,
+                    .len = gamestate.client_count,
+                    .clients = client_buf,
+                }
             };
+            strncpy(tx_msg.data.welcome.server_name, "bomboclat-express", 20);
 
             send_to_client(rx_msg->fd, tx_msg, output);
+
+            tx_msg = (Message){
+                .type = MSG_HELLO,
+                .sender_id = new_id,
+                .target_id = 254,
+            };
+
+            strncpy(tx_msg.data.hello.client_id, rx_msg->msg.data.hello.client_id, 20);
+            strncpy(tx_msg.data.hello.client_name, rx_msg->msg.data.hello.client_name, 30);
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
             break;
 
         // --------------- MSG_LEAVE ---------------
@@ -131,8 +135,11 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
             srv_process_ready(&gamestate, &rx_msg->msg);
             break;
 
+        // --------------- MSG_READY ---------------
         case MSG_SET_READY:
             res = srv_process_ready(&gamestate, &rx_msg->msg);
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
 
             if (res != 0) return;
 
@@ -163,12 +170,14 @@ void setup_game(GameState* game) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         game->clients[i].fd = 0;
         game->clients[i].p.id = 0;
+        game->clients[i].is_ready = 0;
         reset_player(&game->clients[i].p, 0, 0, 0);
     }
 
     game->bombs = NULL;
     game->explosions = NULL;
     game->status = 0;
+    game->client_count = 0;
 }
 
 void *game_thread(void* arg) {
