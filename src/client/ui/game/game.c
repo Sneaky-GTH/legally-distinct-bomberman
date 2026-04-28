@@ -1,4 +1,5 @@
 #include "../../game/state.h"
+#include "./assets/sprites.h"
 #include "./game.h"
 #include <GL/glut.h>
 #include <math.h>
@@ -7,17 +8,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
-#define HARD_WALL_COLOR 0.3f, 0.3f, 0.3f
-#define SOFT_WALL_COLOR 0.4f, 0.7f, 0.4f
-#define EMPTY_COLOR 0.0f, 0.0f, 0.0f
-#define BOMB_COLOR 0.8f, 0.8f, 0.0f
-#define EXPLOSION_COLOR 1.0f, 0.5f, 0.0f
-#define BONUS_COLOR 0.0f, 0.8f, 0.8f
-
 #define POS(x, y) ((y) * game_state->width + (x))
 
 void draw_game_board() {
-    // TODO: use textures
+    bind_spritesheet(); // Ensure texture is bound for drawing
 
     const struct GameState *game_state = get_game_state();
 
@@ -35,44 +29,89 @@ void draw_game_board() {
     float x_offset = (window_width - tile_size * game_state->width) / 2;
     float y_offset = (window_height - tile_size * game_state->height) / 2;
 
+    // There are 7 tiles for the background, in a gradient.
+    // Every second tile is a gradient tile that should be used when transitioning between two background colors.
+    // 3 gradient tiles, 4 solid color tiles
+    float change_background_every = game_state->height / 7.0f;
+
+    int bg_tile = 1; // 1 - 7
+
+    // Draw background first
+    for (int y = 0; y < game_state->height; y++) {
+        if (y >= change_background_every * bg_tile && bg_tile < 7) {
+            bg_tile = (y / change_background_every) + 1;
+        }
+
+        SpriteId bg_sprite;
+
+        switch (bg_tile) {
+            case 1: bg_sprite = SPRITE_BG_BLUE_1; break;
+            case 2: bg_sprite = SPRITE_BG_BLUE_12; break;
+            case 3: bg_sprite = SPRITE_BG_BLUE_2; break;
+            case 4: bg_sprite = SPRITE_BG_BLUE_23; break;
+            case 5: bg_sprite = SPRITE_BG_BLUE_3; break;
+            case 6: bg_sprite = SPRITE_BG_BLUE_34; break;
+            case 7: bg_sprite = SPRITE_BG_BLUE_4; break;
+            default: bg_sprite = SPRITE_BG_BLUE_1; break; // UNREACHABLE
+        }
+        
+        for (int x = 0; x < game_state->width; x++) {
+            float x_pos = x_offset + x * tile_size;
+            float y_pos = y_offset + y * tile_size;
+
+            draw_sprite(bg_sprite, x_pos, y_pos, tile_size, tile_size);
+        }
+
+        if (bg_tile % 2 == 0) {
+            // This is a gradient tile, so do not draw two of them in a row
+            bg_tile++;
+        }
+    }
+
     for (int y = 0; y < game_state->height; y++) {
         for (int x = 0; x < game_state->width; x++) {
             cell_types_t cell = game_state->field[POS(x, y)];
+            SpriteId spr = SPRITE_NONE;
+
             switch (cell) {
                 case HARD_WALL:
-                    glColor3f(HARD_WALL_COLOR);
+                    spr = SPRITE_DIRT;
+                    if (y == 0 || game_state->field[POS(x, y - 1)] != HARD_WALL) {
+                        spr = SPRITE_DIRT_TOP;
+                    }
                     break;
                 case SOFT_WALL:
-                    glColor3f(SOFT_WALL_COLOR);
+                    // Randomly (deterministic based on position) choose a soft wall sprite for variety
+                    spr = (x * 31 + y * 17) % 2 == 0 ? SPRITE_BROKEN_DIRT_1 : SPRITE_BROKEN_DIRT_2;
                     break;
                 case BOMB:
-                    glColor3f(BOMB_COLOR);
+                    spr = SPRITE_BOMB;
                     break;
                 case EXPLOSION:
-                    glColor3f(EXPLOSION_COLOR);
+                    spr = SPRITE_NONE; // TODO: add explosion sprite(s)
                     break;
                 case POWERUP_SPEED:
-                case POWERUP_SIZE:
-                case POWERUP_TIME:
-                case POWERUP_COUNT:
-                    glColor3f(BONUS_COLOR);
+                    spr = SPRITE_BONUS_SPEED;
                     break;
-                    
+                case POWERUP_SIZE:
+                    spr = SPRITE_BONUS_SIZE;
+                    break;
+                case POWERUP_TIME:
+                    spr = SPRITE_BONUS_TIME;
+                    break;
+                case POWERUP_COUNT:
+                    spr = SPRITE_BONUS_COUNT;
+                    break;
                 case EMPTY:
                 default:
-                    glColor3f(EMPTY_COLOR);
+                    spr = SPRITE_NONE;
                     break;
             }
 
             float x_pos = x_offset + x * tile_size;
             float y_pos = y_offset + y * tile_size;
 
-            glBegin(GL_QUADS);
-            glVertex2f(x_pos, y_pos);
-            glVertex2f(x_pos + tile_size, y_pos);
-            glVertex2f(x_pos + tile_size, y_pos + tile_size);
-            glVertex2f(x_pos, y_pos + tile_size);
-            glEnd();
+            draw_sprite(spr, x_pos, y_pos, tile_size, tile_size);
         }
     }
 
@@ -82,22 +121,12 @@ void draw_game_board() {
             continue;
         }
 
-        // Draw players as circles for now, with different colors based on player ID
-        float hue = (player->id * 0.61803398875f); // Golden ratio conjugate to distribute hues evenly
-        float r = 0.5f + 0.5f * cosf(2 * M_PI * hue);
-        float g = 0.5f + 0.5f * cosf(2 * M_PI * hue + 2 * M_PI / 3);
-        float b = 0.5f + 0.5f * cosf(2 * M_PI * hue + 4 * M_PI / 3);
-        glColor3f(r, g, b);
+        SpriteId pid = SPRITE_SANDSTONE; // TODO: add player sprites
 
-        float x_pos = x_offset + player->x * tile_size + tile_size / 2;
-        float y_pos = y_offset + player->y * tile_size + tile_size / 2;
-        float radius = tile_size * 0.4f;
-        glBegin(GL_TRIANGLE_FAN);
-        glVertex2f(x_pos, y_pos);
-        for (int angle = 0; angle <= 360; angle += 30) {
-            float rad = angle * M_PI / 180.0f;
-            glVertex2f(x_pos + cosf(rad) * radius, y_pos + sinf(rad) * radius);
-        }
-        glEnd();   
+        float x_pos = x_offset + player->x * tile_size;
+        float y_pos = y_offset + player->y * tile_size;
+
+        // Draw player sprite
+        draw_sprite(pid, x_pos, y_pos, tile_size, tile_size);
     }
 }

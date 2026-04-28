@@ -57,6 +57,11 @@ CLIENT_ALL_CF := $(CFLAGS) $(CLIENT_CFLAGS)
 SERVER_ALL_CF := $(CFLAGS) $(SERVER_CFLAGS)
 LIB_ALL_CF    := $(CFLAGS) $(LIB_CFLAGS)
 
+# Assets (automatically locate and list targets)
+ASSETS_DIR := assets
+PNG_ASSETS := $(shell find $(ASSETS_DIR) -name '*.png')
+RGBA_ASSETS := $(patsubst %.png, %.rgba, $(PNG_ASSETS))
+
 # Source and object files
 CLIENT_SRCS := $(shell find $(CLIENT_SRC_DIR) -name '*.c')
 SERVER_SRCS := $(shell find $(SERVER_SRC_DIR) -name '*.c')
@@ -68,13 +73,19 @@ SERVER_OBJS := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SERVER_SRCS))
 LIB_OBJS    := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(LIB_SRCS))
 
 # Okay begin the actual Makefile here
-.PHONY: all client server lib run_client run_server clean info format format-check
+.PHONY: all client server lib assets run_client run_server clean info format format-check
 
-all: client server
+all: client server assets
 
-client: $(CLIENT_BIN)
+client: assets $(CLIENT_BIN)
 server: $(SERVER_BIN)
 lib:    $(SHARED_LIB)
+assets: $(RGBA_ASSETS)
+
+# Convert PNG to raw RGBA with ffmpeg
+$(ASSETS_DIR)/%.rgba: $(ASSETS_DIR)/%.png
+	@echo "[FFMPEG] Convert $< -> $@"
+	@ffmpeg -v error -y -i $< -f rawvideo -pix_fmt rgba $@
 
 # Link Binaries
 $(CLIENT_BIN): $(CLIENT_OBJS) $(SHARED_LIB) | $(BUILD_DIR)

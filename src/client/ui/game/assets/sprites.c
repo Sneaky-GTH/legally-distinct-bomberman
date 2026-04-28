@@ -1,0 +1,165 @@
+#include "./sprites.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+static GLuint spritesheet_tex = 0;
+static SpriteDef sprite_defs[SPRITE_COUNT];
+
+// Loads a raw RGBA file using known dimensions
+static unsigned char* load_rgba(const char* rgba_filename, int width, int height) {
+    FILE* f = fopen(rgba_filename, "rb");
+    if (!f) {
+        fprintf(stderr, "Failed to open %s\n", rgba_filename);
+        return NULL;
+    }
+    
+    int data_size = width * height * 4;
+    unsigned char* data = malloc(data_size);
+    if (!data) {
+        fclose(f);
+        return NULL;
+    }
+    
+    // Read the raw RGBA pixels
+    size_t read_bytes = fread(data, 1, data_size, f);
+    if (read_bytes != (size_t)data_size) {
+        fprintf(stderr, "Warning: Expected %d bytes but read %zu bytes in %s\n", data_size, read_bytes, rgba_filename);
+    }
+    fclose(f);
+    
+    return data;
+}
+
+// Maps a slice of the spritesheet to a sprite ID
+static void define_sprite(SpriteId id, float px_x, float px_y, float px_w, float px_h, float tex_w, float tex_h) {
+    if (id >= SPRITE_COUNT) return;
+    if (id == SPRITE_NONE) return; // No need to define UVs for the "none" sprite
+    
+    float u_min = px_x / tex_w;
+    float u_max = (px_x + px_w) / tex_w;
+    // Compute V coords: invert Y assuming tileset is top-left oriented visually but GL is bottom-left
+    float v_max = 1.0f - (px_y / tex_h); // Top Y
+    float v_min = 1.0f - ((px_y + px_h) / tex_h); // Bottom Y
+    
+    sprite_defs[id].u_min = u_min;
+    sprite_defs[id].v_min = v_min;
+    sprite_defs[id].u_max = u_max;
+    sprite_defs[id].v_max = v_max;
+}
+
+// Ensure alpha blending is enabled
+void enable_blending() {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void init_sprites(void) {
+    if (spritesheet_tex != 0) return;
+
+    // We already know the size of the spritesheet
+    int w = 256;
+    int h = 256;
+    unsigned char* pixels = load_rgba("assets/world_tileset.rgba", w, h);
+    if (!pixels) {
+        fprintf(stderr, "Error: Could not load assets/world_tileset.rgba\n");
+        return;
+    }
+
+    glGenTextures(1, &spritesheet_tex);
+    glBindTexture(GL_TEXTURE_2D, spritesheet_tex);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+
+    // Pass the raw RGBA data direct to OpenGL
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+    free(pixels);
+
+    enable_blending();
+
+    float tex_w = (float)w;
+    float tex_h = (float)h;
+
+#define SPRITE(id, x, y) define_sprite(SPRITE_##id, (x) * 16, tex_h - (y + 1) * 16, 16, 16, tex_w, tex_h)
+
+    SPRITE(DIRT_TOP,           0, 0);
+    SPRITE(DIRT,               0, 1);
+    SPRITE(BROKEN_DIRT_1,      1, 0);
+    SPRITE(BROKEN_DIRT_2,      1, 1);
+    SPRITE(SANDSTONE_TOP,      2, 0);
+    SPRITE(SANDSTONE,          2, 1);
+    SPRITE(BROKEN_SANDSTONE_1, 3, 0);
+    SPRITE(BROKEN_SANDSTONE_2, 3, 1);
+    SPRITE(GRANITE_TOP,        4, 0);
+    SPRITE(GRANITE,            4, 1);
+    SPRITE(BROKEN_GRANITE_1,   5, 0);
+    SPRITE(BROKEN_GRANITE_2,   5, 1);
+    SPRITE(STONE_TOP,          6, 0);
+    SPRITE(STONE,              6, 1);
+    SPRITE(BROKEN_STONE_1,     7, 0);
+    SPRITE(BROKEN_STONE_2,     7, 1);
+    SPRITE(BONUS_SIZE,         0, 7);
+    SPRITE(BONUS_SPEED,        0, 8);
+    SPRITE(BONUS_TIME,         1, 7);
+    SPRITE(BONUS_COUNT,        1, 8);
+    SPRITE(BOMB,               4, 8);
+    SPRITE(BG_BLUE_1,          0, 9);
+    SPRITE(BG_BLUE_12,         0, 10);
+    SPRITE(BG_BLUE_2,          0, 11);
+    SPRITE(BG_BLUE_23,         0, 12);
+    SPRITE(BG_BLUE_3,          0, 13);
+    SPRITE(BG_BLUE_34,         0, 14);
+    SPRITE(BG_BLUE_4,          0, 15);
+    SPRITE(BG_YELLOW_1,        1, 9);
+    SPRITE(BG_YELLOW_12,       1, 10);
+    SPRITE(BG_YELLOW_2,        1, 11);
+    SPRITE(BG_YELLOW_23,       1, 12);
+    SPRITE(BG_YELLOW_3,        1, 13);
+    SPRITE(BG_YELLOW_34,       1, 14);
+    SPRITE(BG_YELLOW_4,        1, 15);
+    SPRITE(BG_PURPLE_1,        2, 9);
+    SPRITE(BG_PURPLE_12,       2, 10);
+    SPRITE(BG_PURPLE_2,        2, 11);
+    SPRITE(BG_PURPLE_23,       2, 12);
+    SPRITE(BG_PURPLE_3,        2, 13);
+    SPRITE(BG_PURPLE_34,       2, 14);
+    SPRITE(BG_PURPLE_4,        2, 15);
+    SPRITE(BG_GRAY_1,          3, 9);
+    SPRITE(BG_GRAY_12,         3, 10);
+    SPRITE(BG_GRAY_2,          3, 11);
+    SPRITE(BG_GRAY_23,         3, 12);
+    SPRITE(BG_GRAY_3,          3, 13);
+    SPRITE(BG_GRAY_34,         3, 14);
+    SPRITE(BG_GRAY_4,          3, 15);
+
+#undef SPRITE
+}
+
+SpriteDef get_sprite_def(SpriteId id) {
+    if (id < 0 || id >= SPRITE_COUNT) return sprite_defs[0];
+    return sprite_defs[id];
+}
+
+void bind_spritesheet(void) {
+    glEnable(GL_TEXTURE_2D);
+    glBindTexture(GL_TEXTURE_2D, spritesheet_tex);
+}
+
+void draw_sprite(SpriteId id, float x, float y, float w, float h) {
+    if (id >= SPRITE_COUNT) return;
+
+    SpriteDef def = get_sprite_def(id);
+    
+    // Draw quad with texture mapped correctly
+    glColor4f(1.0, 1.0, 1.0, 1.0); // Ensure full opacity and no tint
+    glBegin(GL_QUADS);
+    glTexCoord2f(def.u_min, def.v_min); glVertex2f(x,     y);
+    glTexCoord2f(def.u_max, def.v_min); glVertex2f(x + w, y);
+    glTexCoord2f(def.u_max, def.v_max); glVertex2f(x + w, y + h);
+    glTexCoord2f(def.u_min, def.v_max); glVertex2f(x,     y + h);
+    glEnd();
+}

@@ -1,3 +1,4 @@
+#include "./ui/game/assets/sprites.h"
 #include "./ui/immediate.h"
 #include "./ui/screens/screens.h"
 #include <GL/glut.h>
@@ -135,6 +136,9 @@ int main(int argc, char *argv[]) {
     glutMotionFunc(mouseMoveHandler);
     glutIdleFunc(idleLoop);
     glutDisplayFunc(draw);
+
+    init_sprites(); // Load the BMP spritesheet now that context is active
+
     glutMainLoop();
 
     pthread_cancel(game_thread_id);
