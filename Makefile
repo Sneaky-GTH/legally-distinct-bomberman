@@ -21,7 +21,7 @@ LD := gcc
 ## Flags
 
 # Common compiler flags (always applied)
-COMMON_CFLAGS := -Wall -Wextra -fPIC -I$(SRC_DIR) -I$(LIB_SRC_DIR)
+COMMON_CFLAGS := -Wall -Wextra -fPIC -I$(SRC_DIR) -I$(LIB_SRC_DIR) -D_GNU_SOURCE
 
 # Usage: "make release=1 ..."
 ifeq ($(release),1)
