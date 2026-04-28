@@ -9,9 +9,11 @@ enum Theme {
 
 struct GameConfig {
     enum Theme theme;
+    char previous_address[256]; // Last server address we tried to connect to
 };
 
 const struct GameConfig *get_game_config(void);
 
 void set_game_theme(enum Theme theme);
+void set_previous_address(const char *address);
 void load_config(void);

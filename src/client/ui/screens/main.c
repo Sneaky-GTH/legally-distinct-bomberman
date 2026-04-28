@@ -1,3 +1,4 @@
+#include "../../config/config.h"
 #include "../immediate.h"
 #include "../text.h"
 #include "./connection.h"
@@ -15,7 +16,7 @@ struct MainState {
 
 static struct MainState MAIN_STATE = {
     .is_address_selected = 0,
-    .server_address = "localhost:12345",
+    .server_address = "",
 };
 
 static struct ImInput server_address_input(void) {
@@ -24,6 +25,11 @@ static struct ImInput server_address_input(void) {
 
 void init_main(const void *data) {
     (void)data; // Unused
+    const char* previous_address = get_game_config()->previous_address;
+    if (previous_address[0] != '\0') {
+        strncpy(MAIN_STATE.server_address, previous_address, sizeof(MAIN_STATE.server_address) - 1);
+        MAIN_STATE.server_address[sizeof(MAIN_STATE.server_address) - 1] = '\0';
+    }
 }
 
 void keyboard_main(unsigned char key, int is_special) {
@@ -115,6 +121,8 @@ void draw_main() {
         strncpy(data.server_address, MAIN_STATE.server_address,
                 sizeof(data.server_address) - 1);
         data.server_address[sizeof(data.server_address) - 1] = '\0';
+        
+        set_previous_address(data.server_address);
 
         set_screen(screen_connecting, &data);
         return;

@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <pthread.h>
 #include <sys/stat.h>
 
@@ -10,6 +11,7 @@ static pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 static struct GameConfig CONFIG = {
     .theme = THEME_DIRT,
+    .previous_address = "",
 };
 
 const struct GameConfig *get_game_config(void) {
@@ -92,7 +94,17 @@ static void save_config() {
     pthread_mutex_unlock(&file_mutex);
 }
 
+static void async_save_config() {
+    pthread_create(&(pthread_t){0}, NULL, (void*(*)(void*)) save_config, NULL);
+}
+
 void set_game_theme(enum Theme theme) {
     CONFIG.theme = theme;
-    pthread_create(&(pthread_t){0}, NULL, (void*(*)(void*)) save_config, NULL); // Save config asynchronously to avoid blocking the main thread
+    async_save_config();
+}
+
+void set_previous_address(const char* address) {
+    strncpy(CONFIG.previous_address, address, 255);
+    CONFIG.previous_address[255] = '\0';
+    async_save_config();
 }

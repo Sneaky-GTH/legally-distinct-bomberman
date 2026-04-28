@@ -141,6 +141,8 @@ int main(int argc, char *argv[]) {
     init_sprites(); // Load the BMP spritesheet now that context is active
     load_config();
 
+    set_screen(screen_main, NULL); // Run init_main for main screen
+
     glutMainLoop();
 
     pthread_cancel(game_thread_id);
