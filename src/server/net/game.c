@@ -1,4 +1,5 @@
 #include "server/net/game.h"
+#include "game.h"
 #include "server/net/args.h"
 #include "server/logic/messagehandling.h"
 #include <stdio.h>
@@ -41,6 +42,55 @@ void print_clients(GameState* game) {
         if (game->clients[i].p.id == 0) continue;
         printf("GAME DEBUG: Client: %d\n", game->clients[i].p.id);
     }
+}
+
+
+void spread_out_players(GameState* game, MessageQueue* output) {
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+
+        int res;
+
+        switch(game->clients[i].p.id) {
+            case 1:
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1');
+                break;
+            case 2:
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1');
+                break;
+            case 3:
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, game->playermap.height - 1, '1');
+                break;
+            case 4:
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, game->playermap.height - 1, '1');
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 7:
+                break;
+            case 8:
+                break;
+            default:
+                break;
+        }
+
+        Message tx_msg = (Message){
+            .type = MSG_MOVED,
+            .sender_id = 255,
+            .target_id = 254,
+            .data.moved = {
+                .player_id = game->clients[i].p.id,
+                .new_position = res
+            },
+        };
+
+        broadcast_to_clients(gamestate.clients, tx_msg, output);
+
+    }
+
 }
 
 
@@ -137,11 +187,33 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
         // --------------- MSG_READY ---------------
         case MSG_SET_READY:
+        {
             res = srv_process_ready(&gamestate, &rx_msg->msg);
 
             broadcast_to_clients(gamestate.clients, tx_msg, output);
 
             if (res != 0) return;
+
+            cell_types_t map_buf[gamestate.wallmap.width * gamestate.wallmap.height];
+
+            for (int i = 0; i < gamestate.wallmap.width * gamestate.wallmap.height; i++) {
+                map_buf[i] = gamestate.wallmap.cell[i];
+            }
+
+            tx_msg = (Message){
+                .type = MSG_MAP,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.map = {
+                    .height = gamestate.wallmap.height,
+                    .width = gamestate.wallmap.width,
+                    .map = map_buf,
+                }
+            };
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
+
+            spread_out_players(&gamestate, output);
 
             tx_msg = (Message){
                 .type = MSG_SET_STATUS,
@@ -155,6 +227,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
             broadcast_to_clients(gamestate.clients, tx_msg, output);
 
             break;
+        }
 
         // --------------- MSG_EPIC_FAIL ---------------
         default:

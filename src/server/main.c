@@ -19,17 +19,21 @@
 ServerHandle setup_epoll(int port) {
 
     // create the socket
-    int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+    int server_fd = socket(AF_INET6, SOCK_STREAM, 0);
 
     // allow reusing the socket for easier testing
     int opt = 1;
     setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
+    // disable IPV6_V6ONLY so IPv4 clients can connect too (IPv4-mapped addresses)
+    int v6only = 0;
+    setsockopt(server_fd, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, sizeof(v6only));
+
     // set up the sockaddr
-    struct sockaddr_in addr = {
-        .sin_family = AF_INET,
-        .sin_port = htons(port),
-        .sin_addr.s_addr = INADDR_ANY   // accept connections on any interface
+    struct sockaddr_in6 addr = {
+        .sin6_family = AF_INET6,
+        .sin6_port   = htons(port),
+        .sin6_addr   = IN6ADDR_ANY_INIT   // accepts on all interfaces, both IPv4+IPv6
     };
 
     // bind it to the socket
@@ -72,7 +76,7 @@ int main(void) {
         .not_empty = PTHREAD_COND_INITIALIZER
     };
 
-    ServerHandle sh = setup_epoll(7500);
+    ServerHandle sh = setup_epoll(12345);
 
     // each thread gets only what it needs
     RxArgs rx_args = { .input  = &input_queue, .sh = sh };

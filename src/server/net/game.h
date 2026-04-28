@@ -31,6 +31,7 @@ typedef struct GameState {
 void send_to_client(int c, struct Message msg, MessageQueue* output);
 void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue* output);
 void process_action(ClientMessage* msg, MessageQueue* queue);
+void spread_out_players(GameState* game, MessageQueue* output);
 
 void *game_thread(void* arg);
 

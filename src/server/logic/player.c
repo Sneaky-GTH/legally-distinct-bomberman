@@ -44,6 +44,14 @@ int player_move(PlayingField* field, Player* p, uint8_t x, uint8_t y) {
     return 0;
 }
 
+int player_set_spawn(PlayingField* field, Player* p, uint8_t x, uint8_t y, uint8_t c) {
+    SAFE_SET_CELL(field, x, y, c);
+    p->x = x;
+    p->y = y;
+
+    return cell_to_uint(field, x, y);
+}
+
 uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir) {
 
     uint8_t target_x = p->x;
