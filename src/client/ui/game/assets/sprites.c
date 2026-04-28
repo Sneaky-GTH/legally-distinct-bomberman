@@ -100,8 +100,8 @@ void init_sprites(void) {
     SPRITE(BROKEN_GRANITE_2,   5, 1);
     SPRITE(STONE_TOP,          6, 0);
     SPRITE(STONE,              6, 1);
-    SPRITE(BROKEN_STONE_1,     7, 0);
-    SPRITE(BROKEN_STONE_2,     7, 1);
+    SPRITE(BROKEN_STONE_1,     8, 0);
+    SPRITE(BROKEN_STONE_2,     8, 1);
     SPRITE(BONUS_SIZE,         0, 7);
     SPRITE(BONUS_SPEED,        0, 8);
     SPRITE(BONUS_TIME,         1, 7);

@@ -120,6 +120,30 @@ void draw_main() {
         return;
     }
 
+    // Draw configure button
+    const int CONF_BUTTON_WIDTH = 120;
+    const int CONF_BUTTON_HEIGHT = 32;
+    const int CONF_BUTTON_X = INPUT_X;
+    const int CONF_BUTTON_Y = INPUT_Y + INPUT_HEIGHT + 40;
+
+    struct ImButton config_button = button_create("button-config");
+    layout_component(&config_button.component, CONF_BUTTON_X, CONF_BUTTON_Y, CONF_BUTTON_WIDTH, CONF_BUTTON_HEIGHT);
+
+    if (button_is_hovered(&config_button, state->mouse_x, state->mouse_y)) {
+        glColor3f(0.7, 0.7, 0.7);
+    } else {
+        glColor3f(1.0, 1.0, 1.0);
+    }
+
+    render_component(&config_button.component);
+    drawText("Configure", CONF_BUTTON_X + 10, CONF_BUTTON_Y + 23);
+
+    if (button_clicked(&config_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
+        input_blur(&input);
+        set_screen(screen_configure, NULL);
+        return;
+    }
+
     // Has the user clicked outside the input field?
     if (consume_click(LEFT_MOUSE_BUTTON) &&
         !is_mouse_over(&input.component, state->mouse_x, state->mouse_y)) {
