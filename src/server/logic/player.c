@@ -6,7 +6,7 @@
 #include "server/logic/playingfield.h"
 #include <protocol/messages.h>
 
-Player* init_player(int id, int x, int y) {
+Player* init_player(int id, uint8_t x, uint8_t y) {
     Player* p = malloc(sizeof(Player*));
 
     p->id = id;
@@ -24,7 +24,7 @@ void free_player(Player* p) {
     free(p);
 }
 
-void reset_player(Player* p, int id, int x, int y) {
+void reset_player(Player* p, int id, uint8_t x, uint8_t y) {
     p->id = id;
     p->p_count = 0;
     p->p_size = 0;

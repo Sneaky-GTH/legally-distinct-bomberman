@@ -12,6 +12,7 @@
 typedef struct Client {
     Player p;
     int fd;
+    int ready;
 } Client;
 
 typedef struct GameState {
@@ -19,6 +20,9 @@ typedef struct GameState {
     PlayingField wallmap;
     PlayingField playermap;
     Explosion* explosions;
+    Bomb* bombs;
+    Antibomb* antibombs;
+    int status;
 } GameState;
 
 

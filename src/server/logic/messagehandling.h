@@ -11,5 +11,7 @@
 void srv_process_hello(GameState* game, Message* msg);
 uint8_t srv_process_move_attempt(GameState* game, Message* msg);
 uint8_t srv_process_bomb_attempt(GameState* game, Message* msg);
+uint8_t srv_process_ready(GameState* game, Message* msg);
+uint8_t srv_start_game(GameState* game);
 
 #endif

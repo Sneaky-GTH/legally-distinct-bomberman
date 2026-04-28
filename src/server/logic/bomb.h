@@ -8,18 +8,20 @@
 
 typedef struct GameState GameState;
 
-typedef struct {
+typedef struct Bomb {
     uint8_t x;
     uint8_t y;
     uint8_t radius;
     uint8_t lifetime;
+    struct Bomb* nextbomb;
 } Bomb;
 
-typedef struct {
+typedef struct Antibomb {
     uint8_t x;
     uint8_t y;
     uint8_t radius;
     uint8_t lifetime;
+    struct Antibomb* nextantibomb;
 } Antibomb;
 
 typedef struct Explosion {

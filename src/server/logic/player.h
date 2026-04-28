@@ -18,9 +18,9 @@ typedef struct {
     uint8_t y;
 } Player;
 
-Player* init_player(int id, int x, int y);
+Player* init_player(int id, uint8_t x, uint8_t y);
 void free_player(Player* p);
-void reset_player(Player* p, int id, int x, int y) ;
+void reset_player(Player* p, int id, uint8_t x, uint8_t y) ;
 
 int player_move(PlayingField* field, Player* p,  uint8_t x, uint8_t y);
 uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir);

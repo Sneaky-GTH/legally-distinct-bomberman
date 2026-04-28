@@ -33,3 +33,19 @@ uint8_t srv_process_bomb_attempt(GameState* game, Message* msg) {
 
 }
 
+
+uint8_t srv_process_ready(GameState* game, Message* msg) {
+
+    game->clients[msg->sender_id].ready = 1;
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id != 0 && game->clients[i].ready == 0) {
+            return -1;
+        }
+    }
+
+    game->status = 1;
+    return 0;
+
+}
+

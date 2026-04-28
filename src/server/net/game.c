@@ -13,6 +13,7 @@ int add_new_client(Client clients[MAX_CLIENTS], int fd) {
         if (clients[i].p.id == 0) {
             clients[i].fd = fd;
             clients[i].p.id = i;
+            clients[i].ready = 0;
             return i;
         }
     }
@@ -25,6 +26,7 @@ int remove_client(Client clients[MAX_CLIENTS], int fd) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].p.id == i) {
             clients[i].fd = 0;
+            clients[i].ready = 0;
             reset_player(&clients[i].p, i, 0, 0);
             return i;
         }
@@ -87,6 +89,8 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
             send_to_client(rx_msg->fd, tx_msg, output);
             break;
+
+        // --------------- MSG_LEAVE ---------------
         case MSG_LEAVE:
             rx_msg->msg.target_id = remove_client(gamestate.clients, rx_msg->fd);
             broadcast_to_clients(gamestate.clients, rx_msg->msg, output);
@@ -124,20 +128,25 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
         // --------------- MSG_BOMB_ATTEMPT ---------------
         case MSG_BOMB_ATTEMPT:
-            res = srv_process_bomb_attempt(&gamestate, &rx_msg->msg);
+            srv_process_ready(&gamestate, &rx_msg->msg);
+            break;
+
+        case MSG_SET_READY:
+            res = srv_process_ready(&gamestate, &rx_msg->msg);
+
             if (res != 0) return;
 
             tx_msg = (Message){
-                .type = MSG_BOMB,
+                .type = MSG_SET_STATUS,
                 .sender_id = 255,
                 .target_id = 254,
-                .data.moved = {
-                    .player_id = rx_msg->msg.sender_id,
-                    .new_position = res
+                .data.set_status = {
+                    .status = res,
                 },
             };
 
             broadcast_to_clients(gamestate.clients, tx_msg, output);
+
             break;
 
         // --------------- MSG_EPIC_FAIL ---------------
@@ -148,8 +157,25 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
 }
 
+
+void setup_game(GameState* game) {
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        game->clients[i].fd = 0;
+        game->clients[i].p.id = 0;
+        reset_player(&game->clients[i].p, 0, 0, 0);
+    }
+
+    game->bombs = NULL;
+    game->explosions = NULL;
+    game->status = 0;
+}
+
 void *game_thread(void* arg) {
     GameArgs* args = (GameArgs*)arg;
+
+    setup_game(&gamestate);
+
     while (1) {
 
         struct timespec deadline;
