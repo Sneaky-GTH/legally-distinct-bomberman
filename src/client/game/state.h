@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include <protocol/map.h>
 #include <bool.h>
+#include <protocol/map.h>
+#include <stdint.h>
 
 struct Player {
     uint8_t id;

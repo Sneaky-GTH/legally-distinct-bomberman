@@ -1,11 +1,11 @@
-#include "./screens.h"
-#include "../text.h"
-#include "./connection.h"
 #include "../../net/client.h"
 #include "../immediate.h"
-#include <string.h>
-#include <stdio.h>
+#include "../text.h"
+#include "./connection.h"
+#include "./screens.h"
 #include <GL/glut.h>
+#include <stdio.h>
+#include <string.h>
 
 void init_connecting(const void *data) {
     enum ConnectionState state = get_connection_state();

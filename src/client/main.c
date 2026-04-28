@@ -1,10 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "./ui/immediate.h"
+#include "./ui/screens/screens.h"
 #include <GL/glut.h>
 #include <pthread.h>
-#include "./ui/screens/screens.h"
-#include "./ui/immediate.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define WINDOW_WIDTH 1080
 #define WINDOW_HEIGHT 720

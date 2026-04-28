@@ -1,5 +1,4 @@
-#ifndef UI_IMMEDIATE_H
-#define UI_IMMEDIATE_H
+#pragma once
 
 #include <stddef.h>
 
@@ -60,5 +59,3 @@ void input_focus(struct ImInput *input);
 void input_blur(struct ImInput *input);
 int input_is_focused(const struct ImInput *input);
 void input_handle_key(struct ImInput *input, unsigned char key);
-
-#endif

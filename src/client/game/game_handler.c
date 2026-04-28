@@ -1,11 +1,11 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <pthread.h>
-#include <sys/eventfd.h>
-#include <unistd.h>
 #include "./handler.h"
 #include "./state.h"
+#include <pthread.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h> // Why is memcpy in string.h and not in something like memory.h what the fuck??
+#include <sys/eventfd.h>
+#include <unistd.h>
 
 static struct GameState GAME_STATE = {
     .width = 0,

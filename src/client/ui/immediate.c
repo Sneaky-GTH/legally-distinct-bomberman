@@ -1,5 +1,4 @@
 #include "./immediate.h"
-
 #include <GL/glut.h>
 #include <string.h>
 

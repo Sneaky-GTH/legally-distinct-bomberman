@@ -1,6 +1,6 @@
 #pragma once
-#include <net.h>
 #include <bool.h>
+#include <net.h>
 
 struct GameEvent {
     // *_ATTEMPT messages are recieved from render thread, may be rejected by server

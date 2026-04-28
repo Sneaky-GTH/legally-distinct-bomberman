@@ -1,21 +1,21 @@
-#include <protocol/messages.h>
+#include "../game/handler.h"
 #include "./client.h"
-#include <string.h>
-#include <pthread.h>
-#include <errno.h>
-#include <stdio.h>
-#include <signal.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <sys/epoll.h>
-#include <arpa/inet.h>
-#include <sys/socket.h>
-#include <sys/time.h>
 #include "./util.h"
+#include <arpa/inet.h>
+#include <errno.h>
+#include <net.h>
+#include <protocol/messages.h>
 #include <protocol/messages.h>
 #include <protocol/serial.h>
-#include <net.h>
-#include "../game/handler.h"
+#include <pthread.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <unistd.h>
 
 #ifdef DEBUG
 #define LOG(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)

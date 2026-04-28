@@ -1,9 +1,9 @@
 #include "./util.h"
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netdb.h>
-#include <arpa/inet.h>
 
 int parse_address(const char* address, struct ParsedAddress* out) {
     if (!address || !out) return -1;
