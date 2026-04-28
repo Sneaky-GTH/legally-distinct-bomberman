@@ -8,7 +8,7 @@
 
 #define MAX_BOMBS 8
 
-typedef struct {
+typedef struct Player {
     uint8_t id;
     uint8_t p_size; // bomb explosion size power up count
     uint8_t p_speed; // speed power up count
@@ -24,7 +24,6 @@ void reset_player(Player* p, int id, uint8_t x, uint8_t y) ;
 
 int player_move(PlayingField* field, Player* p,  uint8_t x, uint8_t y);
 uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir);
-int player_bomb(PlayingField* ob_field, uint8_t target_x, uint8_t target_y);
-uint8_t player_bomb_attempt(PlayingField* ob_field, Player* p);
+uint8_t player_bomb_attempt(GameState* game, Player* p);
 
 #endif

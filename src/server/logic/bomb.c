@@ -84,6 +84,61 @@ void process_explosions(GameState* game) {
 }
 
 
+void process_bombs(GameState* game) {
+    while (game->bombs->lifetime <= 1) {
+        Explosion* nextex = game->explosions->nextexplo;
+        clear_explosion_from_map(&game->wallmap, game->explosions->x, game->explosions->y);
+        free(game->explosions);
+        game->explosions = nextex;
+    }
+
+    Explosion* currentexplo = game->explosions->nextexplo;
+    Explosion* prevexplo = game->explosions;
+    while (currentexplo != NULL) {
+        if (currentexplo->lifetime <= 1) {
+            Explosion* nextexplo = currentexplo->nextexplo;
+            prevexplo->nextexplo = nextexplo;
+            clear_explosion_from_map(&game->wallmap, currentexplo->x, currentexplo->y);
+            free(currentexplo);
+            currentexplo = nextexplo;
+        } else {
+            currentexplo->lifetime -= 1;
+            currentexplo = currentexplo->nextexplo;
+        }
+    }
+
+}
+
+
+void add_bomb(GameState* game, Bomb* bomb) {
+    Bomb* currentbomb = game->bombs;
+
+    if (currentbomb == NULL) {
+        game->bombs = bomb;
+    }
+
+    while (currentbomb->nextbomb != NULL) {
+        currentbomb = currentbomb->nextbomb;
+    }
+
+    currentbomb->nextbomb = bomb;
+}
+
+
+int create_bomb(GameState* game, uint8_t target_x, uint8_t target_y, Player* p) {
+
+    Bomb* bomb = malloc(sizeof(Bomb));
+
+    bomb->x = target_x;
+    bomb->y = target_y;
+    bomb->lifetime = DEFAULT_BOMB_TIMER - p->p_time;
+    bomb->radius = 1 + p->p_size;
+
+    add_bomb(game, bomb);
+    SAFE_SET_CELL(&game->wallmap, target_x, target_y, 'B');
+}
+
+
 int clear_explosion_from_map(PlayingField* field, uint8_t x, uint8_t y) {
     if (SAFE_GET_CELL(field, x, y) != 'X') {
         return -1;

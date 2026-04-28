@@ -4,7 +4,9 @@
 #include "server/logic/player.h"
 #include "playingfield.h"
 #include "server/logic/playingfield.h"
+#include "server/logic/bomb.h"
 #include <protocol/messages.h>
+#include "server/net/game.h"
 
 Player* init_player(int id, uint8_t x, uint8_t y) {
     Player* p = malloc(sizeof(Player*));
@@ -75,22 +77,17 @@ uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Playe
 }
 
 
-int player_bomb(PlayingField* ob_field, uint8_t target_x, uint8_t target_y) {
-    SAFE_SET_CELL(ob_field, target_x, target_y, 'B');
-}
-
-
-uint8_t player_bomb_attempt(PlayingField* ob_field, Player* p) {
+uint8_t player_bomb_attempt(GameState* game, Player* p) {
 
     uint8_t target_x = p->x;
     uint8_t target_y = p->y;
 
-    if (SAFE_GET_CELL(ob_field, target_x, target_y) != '.') {
+    if (SAFE_GET_CELL(&game->wallmap, target_x, target_y) != '.') {
         return -1;
     }
 
-    player_bomb(ob_field, target_x, target_y);
+    create_bomb(game, target_x, target_y, p);
 
-    return cell_to_uint(ob_field, target_x, target_y);
+    return cell_to_uint(&game->wallmap, target_x, target_y);
 
 }
