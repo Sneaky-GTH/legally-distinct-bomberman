@@ -438,7 +438,33 @@ static void network_thread_main() {
             valid_len = remaining;
             
             // Successfully received and parsed message!
-            printf("Received message type: %d\n", recv_msg.type);
+            printf("Received message type: ");
+            switch (recv_msg.type) {
+                case MSG_HELLO: printf("HELLO"); break;
+                case MSG_WELCOME: printf("WELCOME"); break;
+                case MSG_DISCONNECT: printf("DISCONNECT"); break;
+                case MSG_PING: printf("PING"); break;
+                case MSG_PONG: printf("PONG"); break;
+                case MSG_LEAVE: printf("LEAVE"); break;
+                case MSG_ERROR: printf("ERROR"); break;
+                case MSG_MAP: printf("MAP"); break;
+                case MSG_SET_READY: printf("SET_READY"); break;
+                case MSG_SET_STATUS: printf("SET_STATUS"); break;
+                case MSG_WINNER: printf("WINNER"); break;
+                case MSG_MOVE_ATTEMPT: printf("MOVE_ATTEMPT"); break;
+                case MSG_BOMB_ATTEMPT: printf("BOMB_ATTEMPT"); break;
+                case MSG_MOVED: printf("MOVED"); break;
+                case MSG_BOMB: printf("BOMB"); break;
+                case MSG_EXPLOSION_START: printf("EXPLOSION_START"); break;
+                case MSG_EXPLOSION_END: printf("EXPLOSION_END"); break;
+                case MSG_DEATH: printf("DEATH"); break;
+                case MSG_BONUS_AVAILABLE: printf("BONUS_AVAILABLE"); break;
+                case MSG_BONUS_RETRIEVED: printf("BONUS_RETRIEVED"); break;
+                case MSG_BLOCK_DESTROYED: printf("BLOCK_DESTROYED"); break;
+                default: printf("UNKNOWN (%d)", recv_msg.type); break;
+            }
+            printf(", sender_id: %d, target_id: %d\n", recv_msg.sender_id, recv_msg.target_id);
+
             fprintf(stderr, "Raw data: ");
             for (int i = 0; i < parse_res; i++) {
                 fprintf(stderr, "%02x ", buf[i]);
