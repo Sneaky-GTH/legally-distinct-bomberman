@@ -9,7 +9,7 @@
 int send_all(int sock, const uint8_t *buf, int len);
 
 // Returns 0 on success
-// TODO: errors
+// TODO: document errors
 int send_message(int sock, const Message *msg);
 
 // Returns number of bytes consumed (length of message), throwing ERECV* on error

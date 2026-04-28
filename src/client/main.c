@@ -49,7 +49,9 @@ void draw(void) {
     im_begin_frame();
     glClear(GL_COLOR_BUFFER_BIT);
 
-    switch (get_current_screen()) {
+    enum GuiScreen screen = get_current_screen();
+
+    switch (screen) {
 #define X(name)                                                                                    \
     case screen_##name:                                                                            \
         draw_##name();                                                                             \
@@ -58,6 +60,13 @@ void draw(void) {
 #undef X
     default:
         // Unreachable
+        return;
+    }
+
+    if (screen != get_current_screen()) {
+        // Screen was changed during draw, rerender with new screen
+        im_end_frame();
+        draw();
         return;
     }
 
