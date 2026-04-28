@@ -22,18 +22,6 @@ static struct ImInput server_address_input(void) {
     return input_create("input-id-1", MAIN_STATE.server_address, sizeof(MAIN_STATE.server_address));
 }
 
-int validate_server_address(const char *address) {
-    if (strlen(address) == 0) {
-        strcpy(MAIN_STATE.server_address_error, "Server address cannot be empty.");
-        return 0;
-    }
-
-    // TODO: Add more validation (e.g., regex for IP:port or hostname:port)
-
-    MAIN_STATE.server_address_error[0] = '\0';
-    return 1;
-}
-
 void init_main(const void *data) {
     (void)data; // Unused
 }
@@ -120,18 +108,16 @@ void draw_main() {
 
     if (button_clicked(&connect_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
         input_blur(&input);
-        if (validate_server_address(MAIN_STATE.server_address)) {
-            struct ConnectScreenData data = {
-                .server_address = "",
-            };
+        struct ConnectScreenData data = {
+            .server_address = "",
+        };
 
-            strncpy(data.server_address, MAIN_STATE.server_address,
-                    sizeof(data.server_address) - 1);
-            data.server_address[sizeof(data.server_address) - 1] = '\0';
+        strncpy(data.server_address, MAIN_STATE.server_address,
+                sizeof(data.server_address) - 1);
+        data.server_address[sizeof(data.server_address) - 1] = '\0';
 
-            set_screen(screen_connecting, &data);
-            return;
-        }
+        set_screen(screen_connecting, &data);
+        return;
     }
 
     // Has the user clicked outside the input field?

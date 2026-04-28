@@ -1,3 +1,5 @@
+#pragma once
+
 typedef enum {
     HARD_WALL = 'H',
     SOFT_WALL = 'S',

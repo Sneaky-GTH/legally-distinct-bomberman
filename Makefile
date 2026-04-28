@@ -37,18 +37,18 @@ else
 endif
 
 # For the future
-CLIENT_CFLAGS  := -lGL -lGLU -lglut
+CLIENT_CFLAGS  :=
 SERVER_CFLAGS  :=
 LIB_CFLAGS     :=
 
 LIB_LDFLAGS    := -shared
 
 # Per-binary linker flags
-CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)' -lGL -lGLU -lglut
+CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 SERVER_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 
 # Libraries to link against (will need -lpthread, -lm, etc.)
-CLIENT_LIBS    := -lbomberman
+CLIENT_LIBS    := -lbomberman -lGL -lGLU -lglut -lpthread
 SERVER_LIBS    := -lbomberman
 
 # Assembled flag sets (!!do not edit, modify the variables above)
@@ -78,33 +78,33 @@ lib:    $(SHARED_LIB)
 
 # Link Binaries
 $(CLIENT_BIN): $(CLIENT_OBJS) $(SHARED_LIB) | $(BUILD_DIR)
-	$(LD) $(CLIENT_OBJS) $(CLIENT_LDFLAGS) $(CLIENT_LIBS) -o $@
 	@echo "[LINK] $@"
+	@$(LD) $(CLIENT_OBJS) $(CLIENT_LDFLAGS) $(CLIENT_LIBS) -o $@
 
 $(SERVER_BIN): $(SERVER_OBJS) $(SHARED_LIB) | $(BUILD_DIR)
-	$(LD) $(SERVER_OBJS) $(SERVER_LDFLAGS) $(SERVER_LIBS) -o $@
 	@echo "[LINK] $@"
+	@$(LD) $(SERVER_OBJS) $(SERVER_LDFLAGS) $(SERVER_LIBS) -o $@
 
 # Link Shared Library
 $(SHARED_LIB): $(LIB_OBJS) | $(BUILD_DIR)
-	$(LD) $(LIB_LDFLAGS) $^ -o $@
 	@echo "[LIB]  $@"
+	@$(LD) $(LIB_LDFLAGS) $^ -o $@
 
 # Compile files
 $(OBJ_DIR)/client/%.o: $(CLIENT_SRC_DIR)/%.c | $(OBJ_DIR)/client
 	@mkdir -p $(dir $@)
-	$(CC) $(CLIENT_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
+	@$(CC) $(CLIENT_ALL_CF) -c $< -o $@
 
 $(OBJ_DIR)/server/%.o: $(SERVER_SRC_DIR)/%.c | $(OBJ_DIR)/server
 	@mkdir -p $(dir $@)
-	$(CC) $(SERVER_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
+	@$(CC) $(SERVER_ALL_CF) -c $< -o $@
 
 $(OBJ_DIR)/lib/%.o: $(LIB_SRC_DIR)/%.c | $(OBJ_DIR)/lib
 	@mkdir -p $(dir $@)
-	$(CC) $(LIB_ALL_CF) -c $< -o $@
 	@echo "[CC]   $<"
+	@$(CC) $(LIB_ALL_CF) -c $< -o $@
 
 # Create necessary directories
 $(BUILD_DIR):

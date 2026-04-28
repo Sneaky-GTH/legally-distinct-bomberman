@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <GL/glut.h>
+#include <pthread.h>
 #include "./ui/screens/screens.h"
 #include "./ui/immediate.h"
 
@@ -48,7 +49,9 @@ void draw(void) {
     im_begin_frame();
     glClear(GL_COLOR_BUFFER_BIT);
 
-    switch (get_current_screen()) {
+    enum GuiScreen screen = get_current_screen();
+
+    switch (screen) {
 #define X(name)                                                                                    \
     case screen_##name:                                                                            \
         draw_##name();                                                                             \
@@ -57,6 +60,13 @@ void draw(void) {
 #undef X
     default:
         // Unreachable
+        return;
+    }
+
+    if (screen != get_current_screen()) {
+        // Screen was changed during draw, rerender with new screen
+        im_end_frame();
+        draw();
         return;
     }
 
@@ -87,11 +97,20 @@ void reshape(int width, int height) {
     glLoadIdentity();
 }
 
+void game_thread(); // Defined in game/game_thread.c
+
 int main(int argc, char *argv[]) {
     const char *session = getenv("XDG_SESSION_TYPE");
     if (session == NULL || (strcmp(session, "wayland") != 0 && strcmp(session, "x11") != 0)) {
         fprintf(stderr, "Warning: XDG_SESSION_TYPE is not set to 'wayland' or 'x11'. This client "
                         "may not work properly.\n");
+    }
+
+    pthread_t game_thread_id;
+    int result = pthread_create(&game_thread_id, NULL, (void* (*)(void*)) game_thread, NULL);
+    if (result != 0) {
+        perror("pthread_create");
+        return 1;
     }
 
     glutInit(&argc, argv);
@@ -118,5 +137,7 @@ int main(int argc, char *argv[]) {
     glutDisplayFunc(draw);
     glutMainLoop();
 
+    pthread_cancel(game_thread_id);
+    pthread_join(game_thread_id, NULL);
     return 0;
 }
