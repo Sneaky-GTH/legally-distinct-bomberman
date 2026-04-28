@@ -450,6 +450,8 @@ static void network_thread_main() {
                     CLIENT_STATE.state = ESTABLISHED; LOG("CLIENT_STATE.state = ESTABLISHED;");
                     strcpy(status_message, "Handshake successful! Entering lobby...");
 
+                    CLIENT_STATE.client_id = recv_msg.target_id; // Server may have assigned us a different client ID, update it
+
                     enqueue_event(&(struct GameEvent) { .type = EVENT_RESET });
                     enqueue_event(&(struct GameEvent) {
                         .type = EVENT_NEW_PLAYER,
