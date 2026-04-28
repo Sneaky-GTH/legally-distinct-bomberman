@@ -50,11 +50,11 @@ void spread_out_players(GameState* game, MessageQueue* output) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (game->clients[i].p.id == 0) continue;
 
-        int res;
+        uint8_t res;
 
         switch(game->clients[i].p.id) {
             case 1:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 1, 1, '1');
                 break;
             case 2:
                 res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1');
@@ -86,6 +86,8 @@ void spread_out_players(GameState* game, MessageQueue* output) {
                 .new_position = res
             },
         };
+
+        printf("GAME INFO: Sending move with position: %d\n", res);
 
         broadcast_to_clients(gamestate.clients, tx_msg, output);
 
@@ -251,6 +253,9 @@ void setup_game(GameState* game) {
     game->explosions = NULL;
     game->status = 0;
     game->client_count = 0;
+
+    init_playingField(&game->playermap, 10, 10);
+    init_playingField(&game->wallmap, 10, 10);
 }
 
 void *game_thread(void* arg) {
