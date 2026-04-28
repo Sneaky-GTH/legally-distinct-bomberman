@@ -439,6 +439,11 @@ static void network_thread_main() {
             
             // Successfully received and parsed message!
             printf("Received message type: %d\n", recv_msg.type);
+            fprintf(stderr, "Raw data: ");
+            for (int i = 0; i < parse_res; i++) {
+                fprintf(stderr, "%02x ", buf[i]);
+            }
+            fprintf(stderr, "\n");
 
             switch (recv_msg.type) {
                 case MSG_WELCOME:
@@ -479,9 +484,17 @@ static void network_thread_main() {
 
             free_message(&recv_msg);
             continue;
-        } else if (parse_res < 0 && parse_res != EREADNODATA) {
+        } else if (parse_res < 0 && parse_res != EREADNODATA && parse_res != ERECVTIMEOUT) {
             fprintf(stderr, "Message parse error\n");
+            fprintf(stderr, "Raw data: ");
+            for (int i = 0; i < valid_len; i++) {
+                fprintf(stderr, "%02x ", buf[i]);
+            }
+            fprintf(stderr, "\n");
+            fprintf(stderr, "Error code: %d\n", parse_res);
             goto shutdown;
+        } else if (parse_res == ERECVTIMEOUT) {
+            // No complete message yet, but we did receive some data (valid_len was updated in the main loop), so just wait for more
         }
 
         // Wait for I/O
@@ -527,6 +540,7 @@ static void network_thread_main() {
                                     .type = MSG_BOMB_ATTEMPT,
                                     .sender_id = CLIENT_STATE.client_id,
                                     .target_id = 255, // Server
+                                    .data.bomb_attempt.position = net_evt.place_bomb.position,
                                 }) < 0) {
                                     fprintf(stderr, "Failed to send bomb attempt message\n");
                                     goto shutdown;
@@ -572,6 +586,8 @@ static void network_thread_main() {
     }); // Best effort to notify server of disconnect, but we don't really care about the result since we're shutting down anyway
 
     close(sock);
+
+    strcpy(status_message, "");
 }
 
 static void network_thread_wrapper() {

@@ -160,6 +160,8 @@ void add_player(uint8_t player_id) {
         return; // Player already exists, do nothing
     }
 
+    LOG("[GAME] Adding player %d", player_id);
+
     GAME_STATE.players = realloc(GAME_STATE.players, sizeof(struct Player) * (GAME_STATE.num_players + 1));
     GAME_STATE.players[GAME_STATE.num_players] = (struct Player) {
         .id = player_id,
@@ -296,7 +298,11 @@ void game_thread() {
             case EVENT_MOVE: {
                 LOG("[GAME] Processing event: EVENT_MOVE");
                 struct Player* player = find_player_by_id(event.move.player_id);
-                if (!player) break;
+                if (!player) {
+                    LOG("[GAME] Player %d not found for move event", event.move.player_id);
+                    break;
+                }
+                LOG("[GAME] Moving player %d to position (%d, %d)", player->id, TILE_X(event.move.new_position), TILE_Y(event.move.new_position));
                 player->x = TILE_X(event.move.new_position);
                 player->y = TILE_Y(event.move.new_position);
                 break;
@@ -365,7 +371,10 @@ void game_thread() {
                 }
 
                 // TODO: check for bomb count when we know this attempt will be rejected by the server
-                enqueue_net_event(&event);
+                enqueue_net_event(&(struct GameEvent) {
+                    .type = EVENT_PLACE_BOMB_ATTEMPT,
+                    .place_bomb.position = POS(player->x, player->y),
+                });
                 break;
             }
             case EVENT_PLACE_BOMB: {

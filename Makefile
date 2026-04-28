@@ -48,7 +48,7 @@ CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 SERVER_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 
 # Libraries to link against (will need -lpthread, -lm, etc.)
-CLIENT_LIBS    := -lbomberman -lGL -lGLU -lglut -lpthread
+CLIENT_LIBS    := -lbomberman -lGL -lGLU -lglut -lpthread -lm
 SERVER_LIBS    := -lbomberman
 
 # Assembled flag sets (!!do not edit, modify the variables above)

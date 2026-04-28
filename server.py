@@ -379,7 +379,7 @@ class MovedMessage(Message):
         return MovedMessage(sender, target, player, position), 6
 
     def encode(self) -> bytes:
-        return self.base_encode() + uint16_en(self.position)
+        return self.base_encode() + uint8_en(self.player) + uint16_en(self.position)
 
 class BombAttemptMessage(Message):
     # ...
@@ -718,6 +718,24 @@ def encode_map(map: list[str]): # Helper function to encode a map represented as
             cells.append(cell_mapping[cell])
     return cells
 
+client_positions = {} # Dictionary to track player positions, keyed by client ID
+
+def modify_position(position: int, direction: int, width: int) -> int:
+    x = position % width
+    y = position // width
+
+    match direction:
+        case 0: # Up
+            y -= 1
+        case 1: # Down
+            y += 1
+        case 2: # Left
+            x -= 1
+        case 3: # Right
+            x += 1
+
+    return y * width + x
+
 def handle_message(client_socket: socket.socket, message: Message):
     print(f"Handling message: {message}")
 
@@ -798,7 +816,15 @@ def handle_message(client_socket: socket.socket, message: Message):
 
     if isinstance(message, MoveAttemptMessage):
         print(f"Received MoveAttemptMessage from client {message.sender_id} with direction {message.direction}")
-        return # TODO
+
+        previous_position = client_positions.get(message.sender_id, 0) # Default to position 0 if not set
+        new_position = modify_position(previous_position, message.direction, 20) # Assuming a width of 20 for position calculations
+        client_positions[message.sender_id] = new_position # Update the player's position
+
+        moved_msg = MovedMessage(sender_id=255, target_id=message.sender_id, player=message.sender_id, position=new_position)
+        send_message(client_socket, moved_msg)
+
+        return
 
     if isinstance(message, MovedMessage):
         print(f"Received MovedMessage from client {message.sender_id} for player {message.player} to position {message.position}")
@@ -806,6 +832,8 @@ def handle_message(client_socket: socket.socket, message: Message):
 
     if isinstance(message, BombAttemptMessage):
         print(f"Received BombAttemptMessage from client {message.sender_id} with position ({message.position})")
+        bomb_msg = BombMessage(sender_id=255, target_id=message.sender_id, player=message.sender_id, position=message.position)
+        send_message(client_socket, bomb_msg)
         return # TODO
 
     if isinstance(message, BombMessage):
