@@ -44,17 +44,19 @@ void draw_connecting() {
             drawText("Shutting down connection...", 40, 120);
             break;
         case ESTABLISHED:
-            drawText("Connection established! Loading game...", 40, 120);
-            break;
+            set_screen(screen_lobby, NULL);
+            return;
     }
+
+    drawText(get_status_message(), 40, 160);
 
     // Draw back button
     // if (connection_state == DISCONNECTED) {
 
-        const int BUTTON_WIDTH = 100;
+        const int BUTTON_WIDTH = 80;
         const int BUTTON_HEIGHT = 32;
         const int BUTTON_X = 40;
-        const int BUTTON_Y = 160;
+        const int BUTTON_Y = 180;
 
         struct ImButton back_button = button_create("button-connection-back");
         layout_component(&back_button.component, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);

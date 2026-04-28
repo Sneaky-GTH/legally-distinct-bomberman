@@ -14,3 +14,5 @@ const char* get_server_address();
 
 void spawn_network_thread(const char* address);
 void shutdown_network_thread();
+
+const char* get_status_message();

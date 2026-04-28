@@ -850,8 +850,10 @@ def handle_client(client_socket: socket.socket, addr):
         print(f"Closed connection to {addr}")
 
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_socket.bind(('0.0.0.0', 12345))  # Bind to all interfaces on port 12345
+server_socket = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+# Disable IPV6_V6ONLY to allow this socket to accept both IPv4 and IPv6 connections
+server_socket.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_V6ONLY, 0)
+server_socket.bind(('::', 12345))  # Bind to all interfaces on port 12345
 server_socket.listen(5)  # Listen for incoming connections
 
 while True:

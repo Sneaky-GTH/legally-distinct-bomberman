@@ -2,6 +2,7 @@
     X(main)                                                                                        \
     X(configure)                                                                                   \
     X(connecting)                                                                                  \
+    X(lobby)                                                                                       \
     X(game)
 
 enum GuiScreen {
