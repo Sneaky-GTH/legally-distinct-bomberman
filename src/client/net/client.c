@@ -11,6 +11,12 @@
 #include <protocol/messages.h>
 #include <net.h>
 
+#ifdef DEBUG
+#define LOG(fmt, ...) fprintf(stderr, fmt "\n", ##__VA_ARGS__)
+#else
+#define LOG(fmt, ...)
+#endif
+
 static struct {
     enum ConnectionState state;
     char address[256];
@@ -44,7 +50,7 @@ void spawn_network_thread(const char* address) {
     }
 
     strcpy(status_message, "Starting network thread...");
-    CLIENT_STATE.state = CONNECTING; printf("CLIENT_STATE.state = CONNECTING;\n");
+    CLIENT_STATE.state = CONNECTING; LOG("CLIENT_STATE.state = CONNECTING;");
     strncpy(CLIENT_STATE.address, address, 255);
     CLIENT_STATE.address[255] = '\0';
 
@@ -53,7 +59,7 @@ void spawn_network_thread(const char* address) {
     int result = pthread_create(&thread_id, NULL, (void* (*)(void*)) network_thread_wrapper, NULL);
     if (result != 0) {
         perror("pthread_create");
-        CLIENT_STATE.state = DISCONNECTED; printf("CLIENT_STATE.state = DISCONNECTED;\n");
+        CLIENT_STATE.state = DISCONNECTED; LOG("CLIENT_STATE.state = DISCONNECTED;");
         strcpy(status_message, "Failed to create network thread");
         return;
     }
@@ -73,7 +79,7 @@ static void handle_sigusr2(int signum) {
     if (signum != SIGUSR2) return;
 
     strcpy(status_message, "Shutting down network thread...");
-    CLIENT_STATE.state = DISCONNECTED; printf("CLIENT_STATE.state = DISCONNECTED;\n");
+    CLIENT_STATE.state = DISCONNECTED; LOG("CLIENT_STATE.state = DISCONNECTED;");
     CLIENT_STATE.network_thread = 0;
 
     // TODO: will need more for this to work properly
@@ -184,7 +190,7 @@ static void network_thread_main() {
         return;
     }
 
-    CLIENT_STATE.state = HANDSHAKE; printf("CLIENT_STATE.state = HANDSHAKE;\n");
+    CLIENT_STATE.state = HANDSHAKE; LOG("CLIENT_STATE.state = HANDSHAKE;");
 
     strcpy(status_message, "Connection established! Performing handshake...");
 
@@ -224,7 +230,7 @@ static void network_thread_main() {
                         goto shutdown;
                     }
 
-                    CLIENT_STATE.state = ESTABLISHED; printf("CLIENT_STATE.state = ESTABLISHED;\n");
+                    CLIENT_STATE.state = ESTABLISHED; LOG("CLIENT_STATE.state = ESTABLISHED;");
                     strcpy(status_message, "Handshake successful! Entering lobby...");
                     break;
                 case MSG_DISCONNECT:
@@ -264,6 +270,6 @@ static void network_thread_main() {
 static void network_thread_wrapper() {
     network_thread_main();
     CLIENT_STATE.network_thread = 0;
-    CLIENT_STATE.state = DISCONNECTED; printf("CLIENT_STATE.state = DISCONNECTED;\n");
+    CLIENT_STATE.state = DISCONNECTED; LOG("CLIENT_STATE.state = DISCONNECTED;");
     CLIENT_STATE.address[0] = '\0';
 }

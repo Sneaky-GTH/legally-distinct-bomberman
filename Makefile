@@ -37,18 +37,18 @@ else
 endif
 
 # For the future
-CLIENT_CFLAGS  := -lGL -lGLU -lglut
+CLIENT_CFLAGS  :=
 SERVER_CFLAGS  :=
 LIB_CFLAGS     :=
 
 LIB_LDFLAGS    := -shared
 
 # Per-binary linker flags
-CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)' -lGL -lGLU -lglut
+CLIENT_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 SERVER_LDFLAGS := -L$(BUILD_DIR) -Wl,-rpath,'$$ORIGIN/../$(BUILD_DIR)'
 
 # Libraries to link against (will need -lpthread, -lm, etc.)
-CLIENT_LIBS    := -lbomberman
+CLIENT_LIBS    := -lbomberman -lGL -lGLU -lglut -lpthread
 SERVER_LIBS    := -lbomberman
 
 # Assembled flag sets (!!do not edit, modify the variables above)
