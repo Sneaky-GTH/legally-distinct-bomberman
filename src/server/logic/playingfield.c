@@ -78,4 +78,9 @@ uint8_t move_cell_contents(PlayingField* field, uint8_t x1, uint8_t y1, uint8_t 
 }
 
 
+uint8_t cell_to_uint(PlayingField* field, uint8_t x, uint8_t y) {
+    return (y) * (field)->width + (x);
+}
+
+
 

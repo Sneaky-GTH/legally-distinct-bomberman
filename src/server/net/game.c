@@ -1,18 +1,42 @@
 #include "server/net/game.h"
-#include "args.h"
-#include "game.h"
 #include "server/net/args.h"
 #include "server/logic/messagehandling.h"
 #include <stdio.h>
 #include <protocol/messages.h>
 #include <pthread.h>
 
-Client clients[MAX_CLIENTS];
+GameState gamestate;
 
-void send_to_client(int c, Message msg, MessageQueue* output) {
+int add_new_client(Client clients[MAX_CLIENTS], int fd) {
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i].p.id == 0) {
+            clients[i].fd = fd;
+            clients[i].p.id = i;
+            return i;
+        }
+    }
+
+    return -1;
+
+}
+
+int remove_client(Client clients[MAX_CLIENTS], int fd) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i].p.id == i) {
+            clients[i].fd = 0;
+            reset_player(&clients[i].p, i, 0, 0);
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+void send_to_client(int fd, Message msg, MessageQueue* output) {
 
     ClientMessage cmsg = {
-        .fd = c,
+        .fd = fd,
         .msg = msg
     };
 
@@ -28,33 +52,95 @@ void send_to_client(int c, Message msg, MessageQueue* output) {
 }
 
 
-void broadcast_to_clients(Client* clients, Message msg, MessageQueue* output) {
+void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue* output) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (clients[i].p.id == 0) continue;
         send_to_client(clients[i].fd, msg, output);
     }
 }
 
 
-void process_action(ClientMessage* msg, MessageQueue* output) {
+void process_action(ClientMessage* rx_msg, MessageQueue* output) {
     printf("GAME INFO: Game thread is processing a message!\n");
-    printf("This message has the type: %d\n", msg->msg.type);
+    printf("This message has the type: %d\n", rx_msg->msg.type);
 
-    Message send_msg = {
-        .type = MSG_WELCOME,
-        .sender_id = 255, // Will be assigned by server
-        .target_id = 0, // Server
-        .data.welcome = {
-            .server_name = "bomboclat-express",
-            .status = GAME_LOBBY,
-            .len = 0,
-            .clients = NULL
-        },
-    };
+    Message tx_msg;
+    uint8_t res;
 
-    switch(msg->msg.type) {
+    switch(rx_msg->msg.type) {
+
+        // --------------- MSG_HELLO ---------------
         case MSG_HELLO:
-            send_to_client(msg->fd, srv_process_hello(NULL, &msg->msg), output);
+            srv_process_hello(&gamestate, &rx_msg->msg);
+
+            tx_msg = (Message){
+                .type = MSG_WELCOME,
+                .sender_id = 255,
+                .target_id = add_new_client(gamestate.clients, rx_msg->fd),
+                .data.welcome = {
+                    .server_name = "bomboclat-express",
+                    .status = GAME_LOBBY,
+                    .len = 0,
+                    .clients = NULL
+                },
+            };
+
+            send_to_client(rx_msg->fd, tx_msg, output);
             break;
+        case MSG_LEAVE:
+            rx_msg->msg.target_id = remove_client(gamestate.clients, rx_msg->fd);
+            broadcast_to_clients(gamestate.clients, rx_msg->msg, output);
+            break;
+
+        // --------------- MSG_MOVE_ATTEMPT ---------------
+        case MSG_MOVE_ATTEMPT:
+            res = srv_process_move_attempt(&gamestate, &rx_msg->msg);
+            if (res != 0) return;
+
+            tx_msg = (Message){
+                .type = MSG_MOVED,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.moved = {
+                    .player_id = rx_msg->msg.sender_id,
+                    .new_position = res
+                },
+            };
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
+            break;
+
+        // --------------- MSG_PING ---------------
+        case MSG_PING:
+            tx_msg = (Message){
+                .type = MSG_PONG,
+                .sender_id = 255,
+                .target_id = rx_msg->msg.sender_id,
+            };
+
+            send_to_client(rx_msg->fd, tx_msg, output);
+            printf("GAME INFO: POOOOONNNNNGGGGG!!!!\n");
+            break;
+
+        // --------------- MSG_BOMB_ATTEMPT ---------------
+        case MSG_BOMB_ATTEMPT:
+            res = srv_process_bomb_attempt(&gamestate, &rx_msg->msg);
+            if (res != 0) return;
+
+            tx_msg = (Message){
+                .type = MSG_BOMB,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.moved = {
+                    .player_id = rx_msg->msg.sender_id,
+                    .new_position = res
+                },
+            };
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
+            break;
+
+        // --------------- MSG_EPIC_FAIL ---------------
         default:
             printf("GAME ERR: Game server received unknown message type.\n");
             break;

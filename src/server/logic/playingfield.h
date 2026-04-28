@@ -6,7 +6,7 @@
 
 #define CELL(field, x, y) (field)->cell[(y) * (field)->width + (x)]
 
-typedef struct {
+typedef struct PlayingField {
     int height;
     int width;
     uint8_t *cell;
@@ -20,5 +20,6 @@ void prepare_playingField(PlayingField *field);
 uint8_t SAFE_GET_CELL(PlayingField* field, uint8_t x, uint8_t y);
 uint8_t SAFE_SET_CELL(PlayingField* field, uint8_t x, uint8_t y, uint8_t v);
 uint8_t move_cell_contents(PlayingField* field, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2);
+uint8_t cell_to_uint(PlayingField* field, uint8_t x, uint8_t y);
 
 #endif

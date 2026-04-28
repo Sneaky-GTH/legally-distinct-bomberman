@@ -6,6 +6,10 @@
 #include "server/logic/playingfield.h"
 #include "server/net/game.h"
 
-Message srv_process_hello(GameState* game, Message* msg);
+#define MAX_CLIENTS 16
+
+void srv_process_hello(GameState* game, Message* msg);
+uint8_t srv_process_move_attempt(GameState* game, Message* msg);
+uint8_t srv_process_bomb_attempt(GameState* game, Message* msg);
 
 #endif

@@ -71,9 +71,28 @@ void* rx_thread(void* arg) {
                     }
                 }
 
-                printf("RX INFO: RX thread has received a new disconnect.\n");
+                printf("RX INFO: RX thread has received a new disconnect and is trying to send it to the GAME thread.\n");
 
-                // TODO: handle disconnect
+                Message return_msg = {
+                    .type = MSG_LEAVE,
+                    .sender_id = 0,
+                    .target_id = 254,
+                };
+
+
+                ClientMessage cmsg = {
+                    .msg = return_msg,
+                    .fd = fd
+                };
+
+                pthread_mutex_lock(&args->input->lock);
+                args->input->messages[args->input->tail] = cmsg;
+                args->input->tail = (args->input->tail + 1) % MAX_QUEUE;
+                args->input->count++;
+                pthread_cond_signal(&args->input->not_empty);
+                pthread_mutex_unlock(&args->input->lock);
+
+                printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
 
             // HANDLE DATA FROM EXISTING CLIENT
             } else if (events[i].events & EPOLLIN) {

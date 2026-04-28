@@ -2,26 +2,34 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "server/logic/messagehandling.h"
+#include "server/logic/player.h"
+#include "server/logic/playingfield.h"
 #include "server/net/game.h"
+#include "lib/protocol/messages.h"
 
-Message srv_process_hello(GameState* game, Message* msg) {
+void srv_process_hello(GameState* game, Message* msg) {
 
+    return;
 
-    Message return_msg = {
-        .type = MSG_WELCOME,
-        .sender_id = 255,
-        .target_id = 0,
-        .data.welcome = {
-            .server_name = "bomboclat-express",
-            .status = GAME_LOBBY,
-            .len = 0,
-            .clients = NULL
-        },
-    };
+}
 
+uint8_t srv_process_move_attempt(GameState* game, Message* msg) {
 
-    return return_msg;
+    return player_move_attempt(
+        &game->wallmap,
+        &game->playermap,
+        &game->clients[msg->sender_id].p,
+        msg->data.move_attempt.direction
+    );
 
+}
+
+uint8_t srv_process_bomb_attempt(GameState* game, Message* msg) {
+
+    return player_bomb_attempt(
+        &game->wallmap,
+        &game->clients[msg->sender_id].p
+    );
 
 }
 
