@@ -6,12 +6,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
-#include "lib.h"
 #include <protocol/messages.h>
-#include "server/game/playingfield.h"
-#include "server/game/player.h"
+#include "server/logic/playingfield.h"
+#include "server/logic/player.h"
 #include "server/net/args.h"
-#include "server/net/logic.h"
+#include "server/net/game.h"
 #include "server/net/rx.h"
 #include "server/net/tx.h"
 

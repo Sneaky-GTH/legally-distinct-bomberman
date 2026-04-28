@@ -7,15 +7,15 @@
 #include <netinet/in.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <stdio.h>
 #include <pthread.h>
 
 #define CLIENT_BUF_CAP 4096
-#define MAX_CLIENTS 16
 
 typedef struct {
-    int     fd;
+    int fd;
     uint8_t buf[CLIENT_BUF_CAP];
-    int     buf_len;
+    int buf_len;
 } ClientState;
 
 void* rx_thread(void* arg) {
@@ -55,6 +55,8 @@ void* rx_thread(void* arg) {
                 };
                 epoll_ctl(args->sh.epfd, EPOLL_CTL_ADD, client_fd, &cev);
 
+                printf("RX INFO: RX thread has received a new client.\n");
+
 
             // HANDLE CLIENT DISCONNECTING
             } else if (events[i].events & EPOLLRDHUP) {
@@ -68,6 +70,10 @@ void* rx_thread(void* arg) {
                         break;
                     }
                 }
+
+                printf("RX INFO: RX thread has received a new disconnect.\n");
+
+                // TODO: handle disconnect
 
             // HANDLE DATA FROM EXISTING CLIENT
             } else if (events[i].events & EPOLLIN) {
@@ -92,12 +98,16 @@ void* rx_thread(void* arg) {
                     &msg
                 );
 
+                printf("RX INFO: RX thread is trying to receive a new message...\n");
+
                 if (res == ERECVCLOSED) {
                     // clean disconnect
                     epoll_ctl(args->sh.epfd, EPOLL_CTL_DEL, fd, NULL);
                     close(fd);
                     client->fd = 0;
                     client->buf_len = 0;
+
+                    // TODO: send msg_leave message
 
                 } else if (res > 0) {
                     // got a complete message — push to game thread
@@ -108,12 +118,16 @@ void* rx_thread(void* arg) {
                         .fd = client->fd
                     };
 
+                    printf("RX INFO: RX thread has received a full message and is sending it to GAME thread.\n");
+
                     pthread_mutex_lock(&args->input->lock);
                     args->input->messages[args->input->tail] = cmsg;
                     args->input->tail = (args->input->tail + 1) % MAX_QUEUE;
                     args->input->count++;
                     pthread_cond_signal(&args->input->not_empty);
                     pthread_mutex_unlock(&args->input->lock);
+
+                    printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
                 }
 
             } // end of if block

@@ -5,6 +5,7 @@
 #include <pthread.h>
 
 #define MAX_QUEUE 256
+#define MAX_CLIENTS 16
 
 typedef struct {
     Message msg;

@@ -1,14 +1,45 @@
-#include "server/net/logic.h"
+#include "server/net/game.h"
+#include "args.h"
+#include "game.h"
 #include "server/net/args.h"
+#include "server/logic/messagehandling.h"
 #include <stdio.h>
 #include <protocol/messages.h>
 #include <pthread.h>
 
+Client clients[MAX_CLIENTS];
+
+void send_to_client(int c, Message msg, MessageQueue* output) {
+
+    ClientMessage cmsg = {
+        .fd = c,
+        .msg = msg
+    };
+
+    pthread_mutex_lock(&output->lock);
+    output->messages[output->tail] = cmsg;
+    output->tail = (output->tail + 1) % MAX_QUEUE;
+    output->count++;
+    pthread_cond_signal(&output->not_empty);
+    pthread_mutex_unlock(&output->lock);
+
+
+    printf("GAME INFO: Message added to TX queue, good luck TX!\n");
+}
+
+
+void broadcast_to_clients(Client* clients, Message msg, MessageQueue* output) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        send_to_client(clients[i].fd, msg, output);
+    }
+}
+
+
 void process_action(ClientMessage* msg, MessageQueue* output) {
-    printf("Processing a message!\n");
+    printf("GAME INFO: Game thread is processing a message!\n");
     printf("This message has the type: %d\n", msg->msg.type);
 
-    struct Message send_msg = {
+    Message send_msg = {
         .type = MSG_WELCOME,
         .sender_id = 255, // Will be assigned by server
         .target_id = 0, // Server
@@ -20,19 +51,14 @@ void process_action(ClientMessage* msg, MessageQueue* output) {
         },
     };
 
-    ClientMessage newmsg = {
-        .msg = send_msg,
-        .fd = msg->fd
-    };
-
-    pthread_mutex_lock(&output->lock);
-    output->messages[output->tail] = newmsg;
-    output->tail = (output->tail + 1) % MAX_QUEUE;
-    output->count++;
-    pthread_cond_signal(&output->not_empty);
-    pthread_mutex_unlock(&output->lock);
-
-    printf("Message added to TX queue, good luck!\n");
+    switch(msg->msg.type) {
+        case MSG_HELLO:
+            send_to_client(msg->fd, srv_process_hello(NULL, &msg->msg), output);
+            break;
+        default:
+            printf("GAME ERR: Game server received unknown message type.\n");
+            break;
+    }
 
 }
 

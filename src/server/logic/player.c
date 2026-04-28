@@ -1,12 +1,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "server/game/player.h"
-#include "server/game/playingfield.h"
+#include "server/logic/player.h"
+#include "server/logic/playingfield.h"
 #include <protocol/messages.h>
 
-struct player* init_player(int id, int x, int y) {
-    struct player* p = malloc(sizeof(struct player*));
+Player* init_player(int id, int x, int y) {
+    Player* p = malloc(sizeof(Player*));
 
     p->id = id;
     p->p_count = 0;
@@ -19,11 +19,11 @@ struct player* init_player(int id, int x, int y) {
     return p;
 }
 
-void free_player(struct player* p) {
+void free_player(Player* p) {
     free(p);
 }
 
-uint8_t player_move(struct playingField* field, struct player* p, uint8_t x, uint8_t y) {
+uint8_t player_move(PlayingField* field, Player* p, uint8_t x, uint8_t y) {
     move_cell_contents(field, p->x, p->y, x, y);
     p->x = x;
     p->y = y;
@@ -31,7 +31,7 @@ uint8_t player_move(struct playingField* field, struct player* p, uint8_t x, uin
     return 't';
 }
 
-uint8_t player_move_attempt(struct playingField* field, struct player* p, direction_t dir) {
+uint8_t player_move_attempt(PlayingField* field, Player* p, direction_t dir) {
 
     uint8_t target_x = p->x;
     uint8_t target_y = p->y;

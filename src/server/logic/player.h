@@ -3,9 +3,9 @@
 
 #include <stdint.h>
 #include <protocol/messages.h>
-#include "server/game/playingfield.h"
+#include "server/logic/playingfield.h"
 
-struct player {
+typedef struct {
     uint8_t id;
     uint8_t p_size; // bomb explosion size power up count
     uint8_t p_speed; // speed power up count
@@ -13,12 +13,12 @@ struct player {
     uint8_t p_count; // bomb count power up
     uint8_t x;
     uint8_t y;
-};
+} Player;
 
-struct player* init_player(int id, int x, int y);
-void free_player(struct player* p);
+Player* init_player(int id, int x, int y);
+void free_player(Player* p);
 
-uint8_t player_move_attempt(struct playingField* field, struct player* p, direction_t dir);
-uint8_t player_move(struct playingField* field, struct player* p, uint8_t x, uint8_t y);
+uint8_t player_move_attempt(PlayingField* field, Player* p, direction_t dir);
+uint8_t player_move(PlayingField* field, Player* p, uint8_t x, uint8_t y);
 
 #endif
