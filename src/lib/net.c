@@ -21,6 +21,9 @@ int send_message(int sock, const Message *msg) {
     uint8_t buf[4096];
     int len = write_message(buf, sizeof(buf), msg);
     if (len < 0) return len;
+
+    printf("Sending message type: %d\n", msg->type);
+
     return send_all(sock, buf, len);
 }
 

@@ -23,13 +23,15 @@ static void write_uint16(uint8_t *buf, int *off, const uint16_t value) {
 
 static void read_cstrn(const uint8_t *data, int *off, char *destination, int max_len) {
     int start = *off;
-    while (*off - start < max_len && data[*off] != '\0') {
-        destination[*off] = (char)data[*off];
+    int written = 0;
+    while (written < max_len && data[*off] != '\0') {
+        destination[written] = (char)data[*off];
         (*off)++;
+        written++;
     }
 
-    if (*off < max_len) {
-        destination[*off + 1] = '\0';
+    if (written < max_len) {
+        destination[written] = '\0';
     }
 
     *off = start + max_len;
@@ -56,7 +58,10 @@ int read_message(const uint8_t *data, int len, struct Message *msg) {
 
     int off = 0;
 
-    read_uint8(data, &off, (uint8_t*) &msg->type);
+    uint8_t type_val;
+    read_uint8(data, &off, &type_val);
+    msg->type = (msg_type_t) type_val;
+
     read_uint8(data, &off, &msg->sender_id);
     read_uint8(data, &off, &msg->target_id);
 
@@ -79,23 +84,27 @@ int read_message(const uint8_t *data, int len, struct Message *msg) {
         if (len < 25)
             return EREADNODATA; // WELCOME is at least 25 bytes long
         read_cstrn(data, &off, msg->data.welcome.server_name, 20);
-        read_uint8(data, &off, (uint8_t*) &msg->data.welcome.status);
+        uint8_t status_val;
+        read_uint8(data, &off, &status_val);
+        msg->data.welcome.status = (game_status_t) status_val;
         read_uint8(data, &off, &msg->data.welcome.len);
 
         if (len < 25 + msg->data.welcome.len * 32)
             return EREADNODATA;
 
-        msg->data.welcome.clients = malloc(sizeof(clients_t) * msg->data.welcome.len);
-        if (msg->data.welcome.clients == NULL) {
-            return EREADNOMEM;
-        }
+        if (msg->data.welcome.len > 0) {
+            msg->data.welcome.clients = malloc(sizeof(clients_t) * msg->data.welcome.len);
+            if (msg->data.welcome.clients == NULL) {
+                return EREADNOMEM;
+            }
 
-        for (int i = 0; i < msg->data.welcome.len; i++) {
-            clients_t client = msg->data.welcome.clients[i];
-
-            read_uint8(data, &off, &client.client_id);
-            read_uint8(data, &off, &client.is_ready);
-            read_cstrn(data, &off, client.client_name, 30);
+            for (int i = 0; i < msg->data.welcome.len; i++) {
+                read_uint8(data, &off, &msg->data.welcome.clients[i].client_id);
+                read_uint8(data, &off, &msg->data.welcome.clients[i].is_ready);
+                read_cstrn(data, &off, msg->data.welcome.clients[i].client_name, 30);
+            }
+        } else {
+            msg->data.welcome.clients = NULL;
         }
 
         return off;
@@ -129,13 +138,19 @@ int read_message(const uint8_t *data, int len, struct Message *msg) {
         if (len < map_len + 5)
             return EREADNODATA;
 
-        msg->data.map.map = malloc(sizeof(uint8_t) * map_len);
-        if (msg->data.map.map == NULL) {
-            return EREADNOMEM;
-        }
+        if (map_len > 0) {
+            msg->data.map.map = malloc(sizeof(cell_types_t) * map_len);
+            if (msg->data.map.map == NULL) {
+                return EREADNOMEM;
+            }
 
-        for (int i = 0; i < map_len; i++) {
-            read_uint8(data, &off, (uint8_t*) &(msg->data.map.map[i]));
+            for (int i = 0; i < map_len; i++) {
+                uint8_t cell_val;
+                read_uint8(data, &off, &cell_val);
+                msg->data.map.map[i] = (cell_types_t) cell_val;
+            }
+        } else {
+            msg->data.map.map = NULL;
         }
 
         return off;
@@ -143,7 +158,9 @@ int read_message(const uint8_t *data, int len, struct Message *msg) {
     case MSG_MOVE_ATTEMPT:
         if (len < 4)
             return EREADNODATA; // MOVE_ATTEMPT is 4 bytes long
-        read_uint8(data, &off, (uint8_t*) &msg->data.move_attempt.direction);
+        uint8_t dir_val;
+        read_uint8(data, &off, &dir_val);
+        msg->data.move_attempt.direction = (direction_t) dir_val;
         return 4;
 
     case MSG_MOVED:
@@ -183,7 +200,9 @@ int read_message(const uint8_t *data, int len, struct Message *msg) {
     case MSG_BONUS_AVAILABLE:
         if (len < 6)
             return EREADNODATA; // BONUS_AVAILABLE is 6 bytes long
-        read_uint8(data, &off, (uint8_t*) &msg->data.bonus_available.bonus_type);
+        uint8_t bonus_val;
+        read_uint8(data, &off, &bonus_val);
+        msg->data.bonus_available.bonus_type = (bonus_type_t) bonus_val;
         read_uint16(data, &off, &msg->data.bonus_available.position);
         return 6;
 
