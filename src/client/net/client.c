@@ -6,9 +6,11 @@
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
+#include <stdlib.h>
 #include <sys/epoll.h>
 #include <arpa/inet.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include "./util.h"
 #include <protocol/messages.h>
 #include <protocol/serial.h>
@@ -352,6 +354,19 @@ static void handle_message(const Message *msg, int sock) {
                 .type = EVENT_BLOCK_DESTROYED,
                 .block_destroyed = {
                     .position = msg->data.block_destroyed.position,
+                },
+            });
+            break;
+
+        case MSG_MAP:
+            cell_types_t *field_copy = malloc(sizeof(cell_types_t) * msg->data.map.width * msg->data.map.height);
+            memcpy(field_copy, msg->data.map.map, sizeof(cell_types_t) * msg->data.map.width * msg->data.map.height);
+            enqueue_event(&(struct GameEvent) {
+                .type = EVENT_MAP,
+                .map = {
+                    .width = msg->data.map.width,
+                    .height = msg->data.map.height,
+                    .field = field_copy,
                 },
             });
             break;
