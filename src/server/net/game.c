@@ -1,4 +1,5 @@
 #include "server/net/game.h"
+#include "args.h"
 #include "game.h"
 #include "server/net/args.h"
 #include "server/logic/messagehandling.h"
@@ -6,6 +7,7 @@
 #include <protocol/messages.h>
 #include <pthread.h>
 #include <errno.h>
+#include <stdlib.h>
 #include <string.h>
 
 GameState gamestate;
@@ -242,6 +244,8 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
                 },
             };
 
+            gamestate.status = 1;
+
             broadcast_to_clients(gamestate.clients, tx_msg, output);
 
             break;
@@ -274,9 +278,30 @@ void setup_game(GameState* game) {
     init_playingField(&game->wallmap, 10, 10);
 }
 
-void gametick(GameState* game) {
-    process_bombs(game);
+void gametick(GameState* game, MessageQueue* output) {
+    pthread_mutex_unlock(&output->lock);
+
+    if(game->status != 1) return;
+
+    ServerMessage* servermessages = malloc(sizeof(ServerMessage));
+    servermessages->nextmsg = NULL;
+    servermessages->has_content = 0;
+
+    //printf("GAME INFO: Processing tick...\n");
+
+    process_bombs(game, servermessages);
+    process_antibombs(game, servermessages);
     process_explosions(game);
+
+    while(servermessages->has_content == 1) {
+        ServerMessage* next = servermessages->nextmsg;
+
+        broadcast_to_clients(game->clients, servermessages->msg, output);
+
+        free(servermessages);
+        servermessages = next;
+        if (servermessages == NULL) break;
+    }
 }
 
 static int timespec_passed(const struct timespec *t) {
@@ -324,7 +349,9 @@ void *game_thread(void* arg) {
 
         pthread_mutex_unlock(&args->input->lock);
 
-        gametick(&gamestate);
+        pthread_mutex_lock(&args->input->lock);
+        gametick(&gamestate, args->output);
+        pthread_mutex_unlock(&args->input->lock);
     }
     return NULL;
 }

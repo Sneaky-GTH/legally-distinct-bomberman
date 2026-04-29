@@ -21,6 +21,12 @@ typedef struct {
     pthread_cond_t  not_empty;
 } MessageQueue;
 
+typedef struct ServerMessage {
+    Message msg;
+    int has_content;
+    struct ServerMessage* nextmsg;
+} ServerMessage;
+
 typedef struct {
     int epfd;
     int server_fd;
