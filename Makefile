@@ -140,6 +140,8 @@ run_server: $(SERVER_BIN)
 clean:
 	rm -rf $(BUILD_DIR)
 	@echo "Removed $(BUILD_DIR)/"
+	rm -rf $(ASSETS_DIR)/*.rgba
+	@echo "Removed generated RGBA assets"
 
 format:
 	clang-format -i $(FORMAT_SRCS)

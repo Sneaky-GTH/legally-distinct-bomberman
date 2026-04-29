@@ -32,3 +32,5 @@ struct GuiState *get_gui_state(void);
 // connecting screen)
 void set_screen(enum GuiScreen screen, const void *data);
 enum GuiScreen get_current_screen(void);
+
+void draw_background(void);

@@ -1,4 +1,5 @@
 #include "./screens.h"
+#include "../game/assets/themes.h"
 
 static enum GuiScreen current_screen = screen_main;
 static struct GuiState GUI_STATE = {
@@ -24,4 +25,56 @@ void set_screen(enum GuiScreen screen, const void *data) {
         // Unreachable
         return;
     }
+}
+
+void draw_background(void) {
+    const struct ThemedSprites *theme = get_current_theme();
+
+    float window_height = glutGet(GLUT_WINDOW_HEIGHT);
+    float window_width = glutGet(GLUT_WINDOW_WIDTH);
+
+    float tile_size = 64.0f; // Background tiles are 64x64
+    float width_in_tiles = window_width / tile_size;
+    float height_in_tiles = window_height / tile_size;
+
+    // There are 7 tiles for the background, in a gradient.
+    // Every second tile is a gradient tile that should be used when transitioning between two background colors.
+    // 3 gradient tiles, 4 solid color tiles
+    float change_background_every = height_in_tiles / 7.0f;
+
+    int bg_tile = 1; // 1 - 7
+
+    bind_spritesheet();
+    glColor4f(1.0, 1.0, 1.0, 1.0); // Ensure full brightness and no tint
+
+    // Draw background first
+    for (int y = 0; y < height_in_tiles; y++) {
+        if (y >= change_background_every * bg_tile && bg_tile < 7) {
+            bg_tile = (y / change_background_every) + 1;
+        }
+
+        SpriteId bg_sprite;
+
+        switch (bg_tile) {
+            case 1: bg_sprite = theme->background1; break;
+            case 2: bg_sprite = theme->background12; break;
+            case 3: bg_sprite = theme->background2; break;
+            case 4: bg_sprite = theme->background23; break;
+            case 5: bg_sprite = theme->background3; break;
+            case 6: bg_sprite = theme->background34; break;
+            case 7: bg_sprite = theme->background4; break;
+            default: bg_sprite = theme->background1; break; // UNREACHABLE
+        }
+
+        for (int x = 0; x < width_in_tiles; x++) {
+            draw_sprite(bg_sprite, x * tile_size, y * tile_size, tile_size, tile_size);
+        }
+
+        if (bg_tile % 2 == 0) {
+            // This is a gradient tile, so do not draw two of them in a row
+            bg_tile++;
+        }
+    }
+
+    unbind_spritesheet();
 }

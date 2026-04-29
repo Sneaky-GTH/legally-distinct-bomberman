@@ -78,7 +78,7 @@ void draw_main() {
     }
 
     if (MAIN_STATE.server_address[0] == '\0' && !input_is_focused(&input)) {
-        drawText("Enter server address...", INPUT_X + 10, INPUT_Y + 23);
+        drawText("Enter server address...", INPUT_X + 10, INPUT_Y + 18);
     } else {
         if (timeSinceStart % 1000 < 500 && input_is_focused(&input)) {
             glColor3f(1.0, 1.0, 1.0); // Cursor color
@@ -90,7 +90,7 @@ void draw_main() {
             glVertex2f(caretX, INPUT_Y + INPUT_HEIGHT - 5);
             glEnd();
         }
-        drawText(MAIN_STATE.server_address, INPUT_X + 10, INPUT_Y + 23);
+        drawText(MAIN_STATE.server_address, INPUT_X + 10, INPUT_Y + 18);
     }
 
     // Draw connect button
@@ -103,14 +103,15 @@ void draw_main() {
     layout_component(&connect_button.component, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
 
     if (button_is_hovered(&connect_button, state->mouse_x, state->mouse_y)) {
-        glColor3f(0.7, 0.7, 0.7); // Hover color
+        glColor4f(0.7, 0.7, 0.7, 1.0); // Hover color
     } else {
-        glColor3f(1.0, 1.0, 1.0); // Normal color
+        glColor4f(1.0, 1.0, 1.0, 1.0); // Normal color
     }
 
     render_component(&connect_button.component);
 
-    drawText("Connect", BUTTON_X + 10, BUTTON_Y + 23);
+    glColor3f(1.0, 1.0, 1.0);
+    drawText("Connect", BUTTON_X + 16, BUTTON_Y + 18);
 
     if (button_clicked(&connect_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
         input_blur(&input);
@@ -121,7 +122,7 @@ void draw_main() {
         strncpy(data.server_address, MAIN_STATE.server_address,
                 sizeof(data.server_address) - 1);
         data.server_address[sizeof(data.server_address) - 1] = '\0';
-        
+
         set_previous_address(data.server_address);
 
         set_screen(screen_connecting, &data);
@@ -138,13 +139,15 @@ void draw_main() {
     layout_component(&config_button.component, CONF_BUTTON_X, CONF_BUTTON_Y, CONF_BUTTON_WIDTH, CONF_BUTTON_HEIGHT);
 
     if (button_is_hovered(&config_button, state->mouse_x, state->mouse_y)) {
-        glColor3f(0.7, 0.7, 0.7);
+        glColor4f(0.7, 0.7, 0.7, 1.0);
     } else {
-        glColor3f(1.0, 1.0, 1.0);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
     }
 
     render_component(&config_button.component);
-    drawText("Configure", CONF_BUTTON_X + 10, CONF_BUTTON_Y + 23);
+
+    glColor3f(1.0, 1.0, 1.0);
+    drawText("Configure", CONF_BUTTON_X + 18, CONF_BUTTON_Y + 18);
 
     if (button_clicked(&config_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
         input_blur(&input);

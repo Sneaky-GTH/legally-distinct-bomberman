@@ -1,6 +1,6 @@
 #include "../../config/config.h"
 #include "../../game/state.h"
-#include "./assets/sprites.h"
+#include "./assets/themes.h"
 #include "./game.h"
 #include <GL/glut.h>
 #include <math.h>
@@ -11,179 +11,13 @@
 
 #define POS(x, y) ((y) * game_state->width + (x))
 
-struct ThemedExplosionSprites {
-    SpriteId ulr;
-    SpriteId udl;
-    SpriteId ud;
-    SpriteId udr;
-    SpriteId none;
-    SpriteId lr;
-    SpriteId dr;
-    SpriteId dl;
-    SpriteId d;
-    SpriteId u;
-    SpriteId dlr;
-    SpriteId ur;
-    SpriteId ul;
-    SpriteId l;
-    SpriteId r;
-};
-
-struct ThemedSprites {
-    SpriteId top;
-    SpriteId middle;
-    SpriteId broken1;
-    SpriteId broken2;
-    SpriteId bomb;
-    SpriteId background1;
-    SpriteId background12;
-    SpriteId background2;
-    SpriteId background23;
-    SpriteId background3;
-    SpriteId background34;
-    SpriteId background4;
-    struct ThemedExplosionSprites explosion;
-};
-
-static const struct ThemedSprites THEMES[] = {
-    {
-        .top = SPRITE_DIRT_TOP,
-        .middle = SPRITE_DIRT,
-        .broken1 = SPRITE_BROKEN_DIRT_1,
-        .broken2 = SPRITE_BROKEN_DIRT_2,
-        .bomb = SPRITE_BOMB,
-        .background1 = SPRITE_BG_BLUE_1,
-        .background12 = SPRITE_BG_BLUE_12,
-        .background2 = SPRITE_BG_BLUE_2,
-        .background23 = SPRITE_BG_BLUE_23,
-        .background3 = SPRITE_BG_BLUE_3,
-        .background34 = SPRITE_BG_BLUE_34,
-        .background4 = SPRITE_BG_BLUE_4,
-        .explosion = {
-            .ulr = SPRITE_EXPLOSION_ULR,
-            .udl = SPRITE_EXPLOSION_UDL,
-            .ud = SPRITE_EXPLOSION_UD,
-            .udr = SPRITE_EXPLOSION_UDR,
-            .none = SPRITE_EXPLOSION,
-            .lr = SPRITE_EXPLOSION_LR,
-            .dr = SPRITE_EXPLOSION_DR,
-            .dl = SPRITE_EXPLOSION_DL,
-            .d = SPRITE_EXPLOSION_D,
-            .u = SPRITE_EXPLOSION_U,
-            .dlr = SPRITE_EXPLOSION_DLR,
-            .ur = SPRITE_EXPLOSION_UR,
-            .ul = SPRITE_EXPLOSION_UL,
-            .l = SPRITE_EXPLOSION_L,
-            .r = SPRITE_EXPLOSION_R,
-        },
-    },
-    {
-        .top = SPRITE_SANDSTONE_TOP,
-        .middle = SPRITE_SANDSTONE,
-        .broken1 = SPRITE_BROKEN_SANDSTONE_1,
-        .broken2 = SPRITE_BROKEN_SANDSTONE_2,
-        .bomb = SPRITE_BOMB_ALT,
-        .background1 = SPRITE_BG_YELLOW_1,
-        .background12 = SPRITE_BG_YELLOW_12,
-        .background2 = SPRITE_BG_YELLOW_2,
-        .background23 = SPRITE_BG_YELLOW_23,
-        .background3 = SPRITE_BG_YELLOW_3,
-        .background34 = SPRITE_BG_YELLOW_34,
-        .background4 = SPRITE_BG_YELLOW_4,
-        .explosion = {
-            .ulr = SPRITE_EXPLOSION_ALT_ULR,
-            .udl = SPRITE_EXPLOSION_ALT_UDL,
-            .ud = SPRITE_EXPLOSION_ALT_UD,
-            .udr = SPRITE_EXPLOSION_ALT_UDR,
-            .none = SPRITE_EXPLOSION_ALT,
-            .lr = SPRITE_EXPLOSION_ALT_LR,
-            .dr = SPRITE_EXPLOSION_ALT_DR,
-            .dl = SPRITE_EXPLOSION_ALT_DL,
-            .d = SPRITE_EXPLOSION_ALT_D,
-            .u = SPRITE_EXPLOSION_ALT_U,
-            .dlr = SPRITE_EXPLOSION_ALT_DLR,
-            .ur = SPRITE_EXPLOSION_ALT_UR,
-            .ul = SPRITE_EXPLOSION_ALT_UL,
-            .l = SPRITE_EXPLOSION_ALT_L,
-            .r = SPRITE_EXPLOSION_ALT_R,
-        },
-    },
-    {
-        .top = SPRITE_GRANITE_TOP,
-        .middle = SPRITE_GRANITE,
-        .broken1 = SPRITE_BROKEN_GRANITE_1,
-        .broken2 = SPRITE_BROKEN_GRANITE_2,
-        .bomb = SPRITE_BOMB_ALT,
-        .background1 = SPRITE_BG_PURPLE_1,
-        .background12 = SPRITE_BG_PURPLE_12,
-        .background2 = SPRITE_BG_PURPLE_2,
-        .background23 = SPRITE_BG_PURPLE_23,
-        .background3 = SPRITE_BG_PURPLE_3,
-        .background34 = SPRITE_BG_PURPLE_34,
-        .background4 = SPRITE_BG_PURPLE_4,
-        .explosion = {
-            .ulr = SPRITE_EXPLOSION_ALT_ULR,
-            .udl = SPRITE_EXPLOSION_ALT_UDL,
-            .ud = SPRITE_EXPLOSION_ALT_UD,
-            .udr = SPRITE_EXPLOSION_ALT_UDR,
-            .none = SPRITE_EXPLOSION_ALT,
-            .lr = SPRITE_EXPLOSION_ALT_LR,
-            .dr = SPRITE_EXPLOSION_ALT_DR,
-            .dl = SPRITE_EXPLOSION_ALT_DL,
-            .d = SPRITE_EXPLOSION_ALT_D,
-            .u = SPRITE_EXPLOSION_ALT_U,
-            .dlr = SPRITE_EXPLOSION_ALT_DLR,
-            .ur = SPRITE_EXPLOSION_ALT_UR,
-            .ul = SPRITE_EXPLOSION_ALT_UL,
-            .l = SPRITE_EXPLOSION_ALT_L,
-            .r = SPRITE_EXPLOSION_ALT_R,
-        },
-    },
-    {
-        .top = SPRITE_STONE_TOP,
-        .middle = SPRITE_STONE,
-        .broken1 = SPRITE_BROKEN_STONE_1,
-        .broken2 = SPRITE_BROKEN_STONE_2,
-        .bomb = SPRITE_BOMB,
-        .background1 = SPRITE_BG_GRAY_1,
-        .background12 = SPRITE_BG_GRAY_12,
-        .background2 = SPRITE_BG_GRAY_2,
-        .background23 = SPRITE_BG_GRAY_23,
-        .background3 = SPRITE_BG_GRAY_3,
-        .background34 = SPRITE_BG_GRAY_34,
-        .background4 = SPRITE_BG_GRAY_4,
-        .explosion = {
-            .ulr = SPRITE_EXPLOSION_ULR,
-            .udl = SPRITE_EXPLOSION_UDL,
-            .ud = SPRITE_EXPLOSION_UD,
-            .udr = SPRITE_EXPLOSION_UDR,
-            .none = SPRITE_EXPLOSION,
-            .lr = SPRITE_EXPLOSION_LR,
-            .dr = SPRITE_EXPLOSION_DR,
-            .dl = SPRITE_EXPLOSION_DL,
-            .d = SPRITE_EXPLOSION_D,
-            .u = SPRITE_EXPLOSION_U,
-            .dlr = SPRITE_EXPLOSION_DLR,
-            .ur = SPRITE_EXPLOSION_UR,
-            .ul = SPRITE_EXPLOSION_UL,
-            .l = SPRITE_EXPLOSION_L,
-            .r = SPRITE_EXPLOSION_R,
-        },
-    },
-};
-
 void draw_game_board() {
     bind_spritesheet(); // Ensure texture is bound for drawing
 
     const struct GameState *game_state = get_game_state();
-    const struct ThemedSprites *theme;
-    switch (get_game_config()->theme) {
-        case THEME_DIRT: theme = &THEMES[0]; break;
-        case THEME_SANDSTONE: theme = &THEMES[1]; break;
-        case THEME_GRANITE: theme = &THEMES[2]; break;
-        case THEME_STONE: theme = &THEMES[3]; break;
-        default: theme = &THEMES[0]; break; // UNREACHABLE
-    }
+    const struct ThemedSprites *theme = get_current_theme();
+
+    glColor4f(1.0, 1.0, 1.0, 1.0); // Ensure full opacity and no tint
 
     // Calculate the size of each tile based on the window size and the map size, so that the whole map fits in the window
     int window_width = glutGet(GLUT_WINDOW_WIDTH);
@@ -198,45 +32,6 @@ void draw_game_board() {
     // Center the map in the window
     float x_offset = (window_width - tile_size * game_state->width) / 2;
     float y_offset = (window_height - tile_size * game_state->height) / 2;
-
-    // There are 7 tiles for the background, in a gradient.
-    // Every second tile is a gradient tile that should be used when transitioning between two background colors.
-    // 3 gradient tiles, 4 solid color tiles
-    float change_background_every = game_state->height / 7.0f;
-
-    int bg_tile = 1; // 1 - 7
-
-    // Draw background first
-    for (int y = 0; y < game_state->height; y++) {
-        if (y >= change_background_every * bg_tile && bg_tile < 7) {
-            bg_tile = (y / change_background_every) + 1;
-        }
-
-        SpriteId bg_sprite;
-
-        switch (bg_tile) {
-            case 1: bg_sprite = theme->background1; break;
-            case 2: bg_sprite = theme->background12; break;
-            case 3: bg_sprite = theme->background2; break;
-            case 4: bg_sprite = theme->background23; break;
-            case 5: bg_sprite = theme->background3; break;
-            case 6: bg_sprite = theme->background34; break;
-            case 7: bg_sprite = theme->background4; break;
-            default: bg_sprite = theme->background1; break; // UNREACHABLE
-        }
-        
-        for (int x = 0; x < game_state->width; x++) {
-            float x_pos = x_offset + x * tile_size;
-            float y_pos = y_offset + y * tile_size;
-
-            draw_sprite(bg_sprite, x_pos, y_pos, tile_size, tile_size);
-        }
-
-        if (bg_tile % 2 == 0) {
-            // This is a gradient tile, so do not draw two of them in a row
-            bg_tile++;
-        }
-    }
 
     // Draw walls, bombs, and powerups
     for (int y = 0; y < game_state->height; y++) {

@@ -70,7 +70,7 @@ void draw_connecting() {
 
         render_component(&back_button.component);
 
-        drawText("Back", BUTTON_X + 10, BUTTON_Y + 23);
+        drawText("Back", BUTTON_X + 16, BUTTON_Y + 18);
 
         if (button_clicked(&back_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
             shutdown_network_thread();

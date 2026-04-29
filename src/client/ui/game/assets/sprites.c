@@ -184,6 +184,11 @@ void init_sprites(void) {
     SPRITE(EXPLOSION_ALT_R,   9, 4);
 
 #undef SPRITE
+
+    // Non-standard
+    define_sprite(SPRITE_BUTTON_LEFT,   128, tex_h - 16, 6, 16, tex_w, tex_h);
+    define_sprite(SPRITE_BUTTON_MIDDLE, 134, tex_h - 16, 4, 16, tex_w, tex_h);
+    define_sprite(SPRITE_BUTTON_RIGHT,  138, tex_h - 16, 6, 16, tex_w, tex_h);
 }
 
 SpriteDef get_sprite_def(SpriteId id) {
@@ -196,13 +201,18 @@ void bind_spritesheet(void) {
     glBindTexture(GL_TEXTURE_2D, spritesheet_tex);
 }
 
+void unbind_spritesheet(void) {
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
+}
+
 void draw_sprite(SpriteId id, float x, float y, float w, float h) {
     if (id >= SPRITE_COUNT) return;
+    if (id == SPRITE_NONE) return; // Don't draw anything for the "none" sprite
 
     SpriteDef def = get_sprite_def(id);
     
     // Draw quad with texture mapped correctly
-    glColor4f(1.0, 1.0, 1.0, 1.0); // Ensure full opacity and no tint
     glBegin(GL_QUADS);
     glTexCoord2f(def.u_min, def.v_min); glVertex2f(x,     y);
     glTexCoord2f(def.u_max, def.v_min); glVertex2f(x + w, y);

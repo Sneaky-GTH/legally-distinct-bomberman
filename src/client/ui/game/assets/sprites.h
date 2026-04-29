@@ -11,6 +11,9 @@ typedef struct {
 
 typedef enum {
     SPRITE_NONE,
+    SPRITE_BUTTON_LEFT,
+    SPRITE_BUTTON_MIDDLE,
+    SPRITE_BUTTON_RIGHT,
     SPRITE_DIRT_TOP,
     SPRITE_DIRT,
     SPRITE_BROKEN_DIRT_1,
@@ -113,6 +116,7 @@ SpriteDef get_sprite_def(SpriteId id);
 
 // Call before rendering multiple sprites (or simply use draw_sprite which does it per element)
 void bind_spritesheet(void);
+void unbind_spritesheet(void);
 
 // Easily blit a sprite to the screen with its UV dimensions properly calculated
 void draw_sprite(SpriteId id, float x, float y, float w, float h);

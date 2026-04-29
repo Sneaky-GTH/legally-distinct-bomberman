@@ -41,7 +41,8 @@ void draw_configure() {
         }
         
         render_component(&btn.component);
-        drawText(themes[i].name, 50, cur_y + 23);
+        glColor3f(1.0, 1.0, 1.0);
+        drawText(themes[i].name, 61, cur_y + 18);
         
         if (button_clicked(&btn, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
             set_game_theme(themes[i].theme);
@@ -53,7 +54,7 @@ void draw_configure() {
     cur_y += 20;
     
     struct ImButton back_btn = button_create("back-btn");
-    layout_component(&back_btn.component, 40, cur_y, btn_width, btn_height);
+    layout_component(&back_btn.component, 40, cur_y, 80, btn_height);
     
     if (button_is_hovered(&back_btn, state->mouse_x, state->mouse_y)) {
         glColor3f(0.7, 0.7, 0.7);
@@ -61,7 +62,9 @@ void draw_configure() {
         glColor3f(1.0, 1.0, 1.0);
     }
     render_component(&back_btn.component);
-    drawText("Back", 50, cur_y + 23);
+
+    glColor3f(1.0, 1.0, 1.0);
+    drawText("Back", 61, cur_y + 18);
     
     if (button_clicked(&back_btn, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
         set_screen(screen_main, NULL);

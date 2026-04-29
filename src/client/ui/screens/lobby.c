@@ -44,7 +44,7 @@ void draw_lobby() {
 
             if (is_self && !player->ready) {
                 // Draw button to toggle ready state
-                const int BUTTON_WIDTH = 80;
+                const int BUTTON_WIDTH = 81;
                 const int BUTTON_HEIGHT = 32;
                 const int BUTTON_X = 300;
                 const int BUTTON_Y = 80 + i * 40 - 20;
@@ -58,7 +58,7 @@ void draw_lobby() {
                 }
 
                 render_component(&ready_button.component);
-                drawText("Ready", BUTTON_X + 10, BUTTON_Y + 23);
+                drawText("Ready", BUTTON_X + 16, BUTTON_Y + 18);
     
                 if (button_clicked(&ready_button, get_gui_state()->mouse_x, get_gui_state()->mouse_y, LEFT_MOUSE_BUTTON) && is_self) {
                     enqueue_event(&(struct GameEvent) { .type = EVENT_SELF_READY });

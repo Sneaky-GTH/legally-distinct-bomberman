@@ -51,6 +51,8 @@ void draw(void) {
     im_begin_frame();
     glClear(GL_COLOR_BUFFER_BIT);
 
+    draw_background();
+
     enum GuiScreen screen = get_current_screen();
 
     switch (screen) {
@@ -126,6 +128,7 @@ int main(int argc, char *argv[]) {
     glPointSize(1.0);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+    glEnable(GL_BLEND);
 
     // gluOrtho2D(-620.0, 620.0, -340.0, 340.0);
 
@@ -139,6 +142,11 @@ int main(int argc, char *argv[]) {
     glutDisplayFunc(draw);
 
     init_sprites(); // Load the BMP spritesheet now that context is active
+    
+    // Have to be initialized after GLUT context exists
+    extern void initText(void);
+    initText();
+
     load_config();
 
     set_screen(screen_main, NULL); // Run init_main for main screen
