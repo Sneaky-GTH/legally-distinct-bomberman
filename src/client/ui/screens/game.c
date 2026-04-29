@@ -46,6 +46,65 @@ void draw_game_board() {
     float x_offset = (board_avail_width - tile_size * (game_state->width + 2)) / 2 + tile_size; // + tile_size to account for the extra row of "H" cells at the top
     float y_offset = (window_height - tile_size * (game_state->height + 2)) / 2 + tile_size; // + tile_size to account for the extra row of "H" cells at the top
 
+    int transition_y = (int)(window_height * 0.5);
+
+    // Draw background tiles first
+    for (int y = -1; y < game_state->height + 1; y++) {
+        for (int x = -1; x < game_state->width + 1; x++) {
+            SpriteId spr;
+
+            // Corners
+            if (y == -1 && x == -1) {
+                spr = theme->game_bg.bgTL;
+            } else if (y == -1 && x == game_state->width) {
+                spr = theme->game_bg.bgTR;
+            } else if (y == game_state->height && x == -1) {
+                spr = theme->game_bg.bgBL;
+            } else if (y == game_state->height && x == game_state->width) {
+                spr = theme->game_bg.bgBR;
+            }
+
+            // Top and bottom edges
+            else if (y == -1) {
+                spr = theme->game_bg.bgTM;
+            } else if (y == game_state->height) {
+                spr = theme->game_bg.bgBM;
+            }
+
+            // Left and right edges
+            else if (x == -1) {
+                if (y < transition_y) {
+                    spr = theme->game_bg.bgHL;
+                } else if (y == transition_y) {
+                    spr = theme->game_bg.bgML;
+                } else {
+                    spr = theme->game_bg.bgLL;
+                }
+            } else if (x == game_state->width) {
+                if (y < transition_y) {
+                    spr = theme->game_bg.bgHR;
+                } else if (y == transition_y) {
+                    spr = theme->game_bg.bgMR;
+                } else {
+                    spr = theme->game_bg.bgLR;
+                }
+            } else {
+                if (y < transition_y) {
+                    spr = theme->game_bg.bgHM;
+                } else if (y == transition_y) {
+                    spr = theme->game_bg.bgMM;
+                } else {
+                    spr = theme->game_bg.bgLM;
+                }
+            }
+
+            float x_pos = x_offset + x * tile_size;
+            float y_pos = y_offset + y * tile_size;
+
+            draw_sprite(spr, x_pos, y_pos, tile_size, tile_size);
+        }
+    }
+
     // Draw walls, bombs, and powerups
     for (int y = -1; y < game_state->height + 1; y++) {
         for (int x = -1; x < game_state->width + 1; x++) {

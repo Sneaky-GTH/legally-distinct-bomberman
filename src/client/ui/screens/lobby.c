@@ -2,7 +2,6 @@
 #include "../../game/state.h"
 #include "../../game/handler.h"
 #include "../assets/sprites.h"
-#include "../game/game.h"
 #include "../immediate.h"
 #include "../text.h"
 #include "./connection.h"

@@ -20,6 +20,24 @@ struct ThemedExplosionSprites {
     SpriteId r;
 };
 
+struct ThemedGameBackgroundSprites {
+    SpriteId bgTL;
+    SpriteId bgTM;
+    SpriteId bgTR;
+    SpriteId bgHL;
+    SpriteId bgHM;
+    SpriteId bgHR;
+    SpriteId bgML;
+    SpriteId bgMM;
+    SpriteId bgMR;
+    SpriteId bgLL;
+    SpriteId bgLM;
+    SpriteId bgLR;
+    SpriteId bgBL;
+    SpriteId bgBM;
+    SpriteId bgBR;
+};
+
 struct ThemedSprites {
     SpriteId top;
     SpriteId middle;
@@ -34,6 +52,7 @@ struct ThemedSprites {
     SpriteId background34;
     SpriteId background4;
     struct ThemedExplosionSprites explosion;
+    struct ThemedGameBackgroundSprites game_bg;
 };
 
 const struct ThemedSprites* get_current_theme();
