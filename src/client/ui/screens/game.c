@@ -281,7 +281,7 @@ void draw_game_board() {
         blit_textbox(overlay_x, overlay_y, overlay_w, overlay_h);
         
         char win_msg[200];
-        if (game_state->winner_id == 0) {
+        if (game_state->winner_id == 255) {
             snprintf(win_msg, sizeof(win_msg), "It's a draw!");
         } else {
             const char* winner_name = "Unknown";
