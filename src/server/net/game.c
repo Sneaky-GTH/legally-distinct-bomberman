@@ -38,23 +38,57 @@ int load_game_state(const char *filename, GameState* game) {
         if (!fgets(line, sizeof(line), fp)) break;
         int col = 0;
         for (char *p = line; *p && col < width; p++) {
+            if (*p >= '1' && *p <= '9') {
+                game->clients[*p - 48 - 1].p.x = row;
+                game->clients[*p - 48 - 1].p.y = col;
+                continue;
+            }
             if (*p != ' ' && *p != '\r' && *p != '\n')
                 game->wallmap.cell[row * width + col++] = (uint16_t)(uint8_t)*p;
         }
     }
 
-    for (int row = 0; row < height; row++) {
-        if (!fgets(line, sizeof(line), fp)) break;
-        int col = 0;
-        for (char *p = line; *p && col < width; p++) {
-            if (*p != ' ' && *p != '\r' && *p != '\n')
-                game->playermap.cell[row * width + col++] = (uint16_t)(uint8_t)*p;
-        }
-    }
-
-
     fclose(fp);
     return 0;
+}
+
+
+void setup_game(GameState* game) {
+
+    if (game->status == 1) {
+        free_playingField(&game->wallmap);
+        free_playingField(&game->playermap);
+    }
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        game->clients[i].fd = 0;
+        game->clients[i].p.id = 0;
+        game->clients[i].is_ready = 0;
+        game->clients[i].is_alive = 1;
+        game->clients[i].can_move = 0;
+        game->clients[i].can_bomb = 0;
+        reset_player(&game->clients[i].p, 0, 255, 255);
+    }
+
+    game->bombs = NULL;
+    game->explosions = NULL;
+    game->status = 0;
+    game->client_count = 0;
+    game->powerup_counter = 0;
+    game->default_speed = 100;
+    game->default_antibomb = 60;
+    game->default_radius = 1;
+    game->default_countdown = 60;
+    game->config = load_game_state("game.cfg", game) == -1;
+
+    if (game->config >= 0) return;
+
+    init_playingField(&game->playermap, 10, 10);
+    init_playingField(&game->wallmap, 10, 10);
+
+    prepare_playingField(&game->playermap);
+    prepare_playingField(&game->wallmap);
+
 }
 
 
@@ -241,6 +275,8 @@ void check_for_winner(GameState* game, ServerMessage* servermessages) {
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
 
+    setup_game(game);
+
 }
 
 
@@ -333,6 +369,34 @@ void spread_out_players(GameState* game, MessageQueue* output) {
             default:
                 break;
         }
+
+        Message tx_msg = (Message){
+            .type = MSG_MOVED,
+            .sender_id = 255,
+            .target_id = 254,
+            .data.moved = {
+                .player_id = game->clients[i].p.id,
+                .new_position = res
+            },
+        };
+
+        printf("GAME INFO: Sending move with position: %d\n", res);
+
+        broadcast_to_clients(gamestate.clients, tx_msg, output);
+
+    }
+
+}
+
+
+void spawn_players(GameState* game, MessageQueue* output) {
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+
+        uint8_t res;
+
+        res = player_set_spawn(&game->playermap, &game->clients[i].p, game->clients[i].p.x, game->clients[i].p.y, '1' + i);
 
         Message tx_msg = (Message){
             .type = MSG_MOVED,
@@ -489,6 +553,8 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
             if (gamestate.config < 0) {
                 spread_out_players(&gamestate, output);
+            } else {
+                spawn_players(&gamestate, output);
             }
 
             tx_msg = (Message){
@@ -512,45 +578,6 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
             printf("GAME ERR: Game server received unknown message type.\n");
             break;
     }
-
-}
-
-
-void setup_game(GameState* game) {
-
-    if (game->status == 1) {
-        free_playingField(&game->wallmap);
-        free_playingField(&game->playermap);
-    }
-
-    for (int i = 0; i < MAX_CLIENTS; i++) {
-        game->clients[i].fd = 0;
-        game->clients[i].p.id = 0;
-        game->clients[i].is_ready = 0;
-        game->clients[i].is_alive = 1;
-        game->clients[i].can_move = 0;
-        game->clients[i].can_bomb = 0;
-        reset_player(&game->clients[i].p, 0, 255, 255);
-    }
-
-    game->bombs = NULL;
-    game->explosions = NULL;
-    game->status = 0;
-    game->client_count = 0;
-    game->powerup_counter = 0;
-    game->default_speed = 100;
-    game->default_antibomb = 60;
-    game->default_radius = 1;
-    game->default_countdown = 60;
-    game->config = load_game_state("game.cfg", game) == -1;
-
-    if (game->config >= 0) return;
-
-    init_playingField(&game->playermap, 10, 10);
-    init_playingField(&game->wallmap, 10, 10);
-
-    prepare_playingField(&game->playermap);
-    prepare_playingField(&game->wallmap);
 
 }
 
