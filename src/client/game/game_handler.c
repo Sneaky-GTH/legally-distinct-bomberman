@@ -492,13 +492,36 @@ void game_thread() {
 
             case EVENT_BONUS_AVAILABLE: {
                 LOG("[GAME] Processing event: EVENT_BONUS_AVAILABLE");
-                // TODO: Handle bonus available event
+                switch (event.bonus_available.bonus_type) {
+                    case BONUS_SPEED:
+                        GAME_STATE.field[event.bonus_available.position] = POWERUP_SPEED;
+                        break;
+                    case BONUS_RADIUS:
+                        GAME_STATE.field[event.bonus_available.position] = POWERUP_SIZE;
+                        break;
+                    case BONUS_TIMER:
+                        GAME_STATE.field[event.bonus_available.position] = POWERUP_TIME;
+                        break;
+                    // case BONUS_COUNT:
+                    //     GAME_STATE.field[event.bonus_available.position] = POWERUP_COUNT;
+                    //     break;
+                    default:
+                        break;
+                }
                 break;
             }
 
             case EVENT_BONUS_RETRIEVED: {
-                LOG("[GAME] Processing event: EVENT_BONUS_RETRIEVED");
-                // TODO: Handle bonus retrieved event
+                switch (event.bonus_retrieved.position) {
+                    case BONUS_SPEED:
+                    case BONUS_RADIUS:
+                    case BONUS_TIMER:
+                    // case BONUS_COUNT:
+                        GAME_STATE.field[event.bonus_retrieved.position] = EMPTY;
+                        break;
+                    default:
+                        break;
+                }
                 break;
             }
 
