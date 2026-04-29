@@ -15,7 +15,7 @@
 #include "server/net/tx.h"
 
 #define MSG_SIZE 4096
-#define SERVER_PORT 12345
+#define SERVER_PORT 22007
 
 ServerHandle setup_epoll(int port) {
 
