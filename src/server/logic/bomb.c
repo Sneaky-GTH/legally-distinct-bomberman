@@ -134,7 +134,7 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
 
-    print_playingField(field);
+    //print_playingField(field);
 
 }
 
@@ -179,7 +179,7 @@ Explosion* create_explosion(uint8_t x, uint8_t y, Bomb* bomb) {
     Explosion* explo = malloc(sizeof(Explosion));
     explo->x = x;
     explo->y = y;
-    explo->lifetime = bomb->lifetime;
+    explo->lifetime = DEFAULT_ANTIBOMB_TIMER;
     return explo;
 }
 

@@ -49,9 +49,14 @@ void print_clients(GameState* game) {
 
 
 void check_player_death(GameState* game, ServerMessage* servermessages) {
+    print_playingField(&game->wallmap);
+    print_playingField(&game->playermap);
+    printf("---------------");
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (game->clients[i].p.id == 0) continue;
+        if (game->clients[i].is_alive != 1) continue;
         if (SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y) == 'X') {
+            printf("ALERTA! ALERTA! THIS MF SHOULD BE DEAD!\n");
             game->clients[i].is_alive = 0;
 
             while (servermessages->nextmsg != NULL) {
@@ -320,10 +325,10 @@ void gametick(GameState* game, MessageQueue* output) {
 
     //printf("GAME INFO: Processing tick...\n");
 
+    check_player_death(game, servermessages);
     process_bombs(game, servermessages);
     process_antibombs(game, servermessages);
     process_explosions(game);
-    check_player_death(game, servermessages);
 
     while(servermessages->has_content == 1) {
         ServerMessage* next = servermessages->nextmsg;
@@ -351,13 +356,6 @@ void *game_thread(void* arg) {
     clock_gettime(CLOCK_MONOTONIC, &next_tick);
 
     while (1) {
-        // build deadline 16ms from last tick (not from now)
-        next_tick.tv_nsec += 16L * 1000000L;
-        if (next_tick.tv_nsec >= 1000000000L) {
-            next_tick.tv_sec  += 1;
-            next_tick.tv_nsec -= 1000000000L;
-        }
-
 
         pthread_mutex_lock(&args->input->lock);
 
@@ -382,10 +380,13 @@ void *game_thread(void* arg) {
 
         pthread_mutex_unlock(&args->input->lock);
 
-        gametick(&gamestate, args->output);
-
         if (timespec_passed(&next_tick)) {
-            clock_gettime(CLOCK_MONOTONIC, &next_tick);
+            gametick(&gamestate, args->output);
+            next_tick.tv_nsec += 16L * 1000000L * 2L;
+            if (next_tick.tv_nsec >= 1000000000L) {
+                next_tick.tv_sec  += 1;
+                next_tick.tv_nsec -= 1000000000L;
+            }
         }
 
     }
