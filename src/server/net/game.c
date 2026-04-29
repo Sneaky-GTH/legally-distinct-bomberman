@@ -49,14 +49,14 @@ void print_clients(GameState* game) {
 
 
 void check_player_death(GameState* game, ServerMessage* servermessages) {
-    print_playingField(&game->wallmap);
-    print_playingField(&game->playermap);
-    printf("---------------");
+    //print_playingField(&game->wallmap);
+    //print_playingField(&game->playermap);
+    //printf("---------------");
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (game->clients[i].p.id == 0) continue;
         if (game->clients[i].is_alive != 1) continue;
         if (SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y) == 'X') {
-            printf("ALERTA! ALERTA! THIS MF SHOULD BE DEAD!\n");
+            //printf("ALERTA! ALERTA! THIS MF SHOULD BE DEAD!\n");
             game->clients[i].is_alive = 0;
 
             while (servermessages->nextmsg != NULL) {
@@ -81,6 +81,51 @@ void check_player_death(GameState* game, ServerMessage* servermessages) {
 
         }
     }
+}
+
+
+void check_for_winer(GameState* state, MessageQueue* output) {
+
+    // first, check how many are alive
+    int alive = 0;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        if (game->clients[i].is_alive == 1) alive += 1;
+        if (alive > 1) break;
+    }
+
+    // then check who is alive
+    alive = 0;
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        if (game->clients[i].is_alive == 1) {
+            alive = game->clients[i].p.id;
+            break;
+        }
+    }
+
+
+
+    while (servermessages->nextmsg != NULL) {
+        servermessages = servermessages->nextmsg;
+    }
+
+    ServerMessage* next = malloc(sizeof(ServerMessage));
+    next->nextmsg = NULL;
+    servermessages->nextmsg = (struct ServerMessage*)next;
+
+    Message tx_msg = (Message){
+        .type = MSG_WINNER,
+        .sender_id = 255,
+        .target_id = 254,
+        .data.winner= {
+            .player_id = alive,
+        }
+    };
+
+    servermessages->has_content = 1;
+    servermessages->msg = tx_msg;
+
 }
 
 
@@ -329,6 +374,7 @@ void gametick(GameState* game, MessageQueue* output) {
     process_bombs(game, servermessages);
     process_antibombs(game, servermessages);
     process_explosions(game);
+    check_for_winer(game, servermessages);
 
     while(servermessages->has_content == 1) {
         ServerMessage* next = servermessages->nextmsg;
