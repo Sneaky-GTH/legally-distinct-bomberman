@@ -40,6 +40,7 @@ Klientam spēles laikā ir 3 pavedieni:
 Oriģinālais paliek kā renderēšanas pavediens, otrs ir spēles loģikas pavediens, kas apstrādā spēles notikumus un atjaunina spēles stāvokli,
 un trešais ir tīkla pavediens, kas sazinās ar serveri un saņem spēles notikumus.
 Spēles loģikas pavediens tiek izveidots programmas sākumā, un tās stāvoklis katru reizi tiek notīrīts, kad izveido jaunu savienojumu.
+Komunikācija starp pavedieniem tiek veikta, izmantojot pthread_mutex un pthread_cond, lai nodrošinātu drošu piekļuvi kopīgajiem resursiem un sinhronizāciju.
 
 Klients arī uztur savienojumu izmantojot SO_KEEPALIVE, kā arī periodiskas "ping" ziņas, lai uzturētu savienojumu un noteiktu, vai serveris ir pieejams.
 
