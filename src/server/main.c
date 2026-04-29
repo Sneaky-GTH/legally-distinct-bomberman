@@ -15,6 +15,7 @@
 #include "server/net/tx.h"
 
 #define MSG_SIZE 4096
+#define SERVER_PORT 12345
 
 ServerHandle setup_epoll(int port) {
 
@@ -78,7 +79,7 @@ int main(void) {
         .not_empty = PTHREAD_COND_INITIALIZER
     };
 
-    ServerHandle sh = setup_epoll(12345);
+    ServerHandle sh = setup_epoll(SERVER_PORT);
 
     // each thread gets only what it needs
     RxArgs rx_args = { .input  = &input_queue, .sh = sh };

@@ -117,8 +117,8 @@ void time_down_speed_limit(GameState* game) {
         if (game->clients[i].p.id == 0) continue;
         if (game->clients[i].is_alive != 1) continue;
 
-        game->clients[i].can_move -= 1;
-        game->clients[i].can_bomb -= 1;
+        if (game->clients[i].can_move > 0) game->clients[i].can_move -= 5;
+        if (game->clients[i].can_bomb > 0) game->clients[i].can_bomb -= 1;
 
     }
 
@@ -602,7 +602,7 @@ void gametick(GameState* game, MessageQueue* output) {
     process_antibombs(game, servermessages);
     process_explosions(game);
     //check_for_winner(game, servermessages);
-    //spawn_power_up(game, servermessages);
+    spawn_power_up(game, servermessages);
     time_down_speed_limit(game);
 
     while(servermessages->has_content == 1) {

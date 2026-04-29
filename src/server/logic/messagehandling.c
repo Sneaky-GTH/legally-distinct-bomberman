@@ -67,7 +67,7 @@ int srv_process_disconnect(GameState* game, int fd) {
 
 int srv_process_move_attempt(GameState* game, Message* msg) {
 
-    //if (game->clients[msg->sender_id - 1].can_move != 0) return -1;
+    if (game->clients[msg->sender_id - 1].can_move > 0) return -1;
 
     printf("Player %d %d %d moving currently is at: %d %d", msg->sender_id, msg->sender_id - 1, game->clients[msg->sender_id - 1].p.id, game->clients[msg->sender_id - 1].p.x, game->clients[msg->sender_id - 1].p.y);
 
