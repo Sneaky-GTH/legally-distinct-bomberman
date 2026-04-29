@@ -103,6 +103,21 @@ typedef enum {
     SPRITE_EXPLOSION_ALT_UL,
     SPRITE_EXPLOSION_ALT_L,
     SPRITE_EXPLOSION_ALT_R,
+    
+    SPRITE_INPUT_LEFT,
+    SPRITE_INPUT_RIGHT,
+    SPRITE_INPUT_MIDDLE,
+
+    SPRITE_TEXTBOX_TOPLEFT,
+    SPRITE_TEXTBOX_TOPRIGHT,
+    SPRITE_TEXTBOX_TOP,
+    SPRITE_TEXTBOX_BOTTOMLEFT,
+    SPRITE_TEXTBOX_BOTTOMRIGHT,
+    SPRITE_TEXTBOX_BOTTOM,
+    SPRITE_TEXTBOX_MIDDLELEFT,
+    SPRITE_TEXTBOX_MIDDLERIGHT,
+    SPRITE_TEXTBOX_MIDDLE,
+
     // Keep adding new sprites here!
     SPRITE_COUNT,
 } SpriteId;
@@ -120,3 +135,5 @@ void unbind_spritesheet(void);
 
 // Easily blit a sprite to the screen with its UV dimensions properly calculated
 void draw_sprite(SpriteId id, float x, float y, float w, float h);
+
+void blit_textbox(float x, float y, float width, float height);

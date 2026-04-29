@@ -1,6 +1,7 @@
 #include "../../net/client.h"
 #include "../../game/state.h"
 #include "../../game/handler.h"
+#include "../assets/sprites.h"
 #include "../game/game.h"
 #include "../immediate.h"
 #include "../text.h"
@@ -27,50 +28,59 @@ void draw_lobby() {
         return;
     }
 
+    int total_w = 400;
+    int total_h = 360;
+    int cx, cy;
+    get_centered_offsets(total_w, total_h, &cx, &cy);
+    
+    glColor3f(1.0, 1.0, 1.0);
+    
+    const char *title = "Legally Distinct Bomberman";
+    int title_w = textWidth(title, strlen(title)) * 2;
+    int title_cx = cx + total_w / 2;
+    
+    blit_textbox(title_cx - title_w/2 - 20, cy, title_w + 40, 60);
+    drawTextScaled(title, title_cx - title_w/2, cy + 32, 2.0f);
+
+    int box_y = cy + 80;
+    int box_w = 400;
+    int box_h = 240;
+
+    box_h = 40 + game_state->num_players * 40;
+
+    blit_textbox(title_cx - box_w/2, box_y, box_w, box_h);
+    
+    int content_x = title_cx - box_w/2 + 20;
+
     if (game_state->status == 0) {
         // Lobby
-        glColor3f(1.0, 1.0, 1.0);
-        drawText("Waiting for players...", 40, 40);
+        drawText("Waiting for players...", content_x, box_y + 20);
 
         // List players
         for (int i = 0; i < game_state->num_players; i++) {
             const struct Player *player = &game_state->players[i];
             char player_text[256];
             int is_self = player->id == game_state->player_id;
-            snprintf(player_text, sizeof(player_text), "Player %d%s", player->id, is_self ? " (you)" : "");
-            drawText(player_text, 40, 80 + i * 40);
+            snprintf(player_text, sizeof(player_text), "%s%s", player->username, is_self ? " (you)" : "");
+            
+            int p_y = box_y + 60 + i * 40;
+            drawText(player_text, content_x, p_y);
             snprintf(player_text, sizeof(player_text), "Ready: %s", player->ready ? "Yes" : "No");
-            drawText(player_text, 200, 80 + i * 40);
+            drawText(player_text, content_x + 180, p_y);
 
             if (is_self && !player->ready) {
-                // Draw button to toggle ready state
-                const int BUTTON_WIDTH = 81;
+                const int BUTTON_WIDTH = 84;
                 const int BUTTON_HEIGHT = 32;
-                const int BUTTON_X = 300;
-                const int BUTTON_Y = 80 + i * 40 - 20;
-                struct ImButton ready_button = button_create("button-ready-toggle");
-                layout_component(&ready_button.component, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-
-                if (button_is_hovered(&ready_button, get_gui_state()->mouse_x, get_gui_state()->mouse_y)) {
-                    glColor3f(0.7, 0.7, 0.7); // Hover color
-                } else {
-                    glColor3f(1.0, 1.0, 1.0); // Normal color
-                }
-
-                render_component(&ready_button.component);
-                drawText("Ready", BUTTON_X + 16, BUTTON_Y + 18);
-    
-                if (button_clicked(&ready_button, get_gui_state()->mouse_x, get_gui_state()->mouse_y, LEFT_MOUSE_BUTTON) && is_self) {
+                
+                if (draw_menu_button("button-ready-toggle", "Ready", content_x + 270, p_y - 24, BUTTON_WIDTH, BUTTON_HEIGHT)) {
                     enqueue_event(&(struct GameEvent) { .type = EVENT_SELF_READY });
-
                 }
             }
         }
     } else if (game_state->status == 1) {
         set_screen(screen_game, NULL);
     } else if (game_state->status == 2) {
-        glColor3f(1.0, 1.0, 1.0);
-        drawText("Game already over!", 40, 40);
+        drawText("Game already over!", content_x, box_y + 20);
     }
 }
 

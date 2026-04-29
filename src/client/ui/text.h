@@ -1,12 +1,9 @@
-#ifndef TEXT_H
-#define TEXT_H
-
+#pragma once
 #include <GL/glut.h>
 #include <stddef.h>
 #include <stdint.h>
 
 void initText(void);
 void drawText(const char *text, GLfloat x, GLfloat y);
-int textWidth(void *font, const char *s, size_t count);
-
-#endif // TEXT_H
+void drawTextScaled(const char *text, GLfloat x, GLfloat y, GLfloat scale);
+int textWidth(const char *s, size_t count);

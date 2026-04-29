@@ -1,5 +1,5 @@
 #include "./config/config.h"
-#include "./ui/game/assets/sprites.h"
+#include "./ui/assets/sprites.h"
 #include "./ui/immediate.h"
 #include "./ui/screens/screens.h"
 #include <GL/glut.h>
@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
     init_sprites(); // Load the BMP spritesheet now that context is active
     
     // Have to be initialized after GLUT context exists
-    extern void initText(void);
+    extern void initText(void); // Defined in ui/text.c
     initText();
 
     load_config();

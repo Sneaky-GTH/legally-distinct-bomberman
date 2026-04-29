@@ -12,6 +12,7 @@ static pthread_mutex_t file_mutex = PTHREAD_MUTEX_INITIALIZER;
 static struct GameConfig CONFIG = {
     .theme = THEME_DIRT,
     .previous_address = "",
+    .username = "Player",
 };
 
 const struct GameConfig *get_game_config(void) {
@@ -106,5 +107,11 @@ void set_game_theme(enum Theme theme) {
 void set_previous_address(const char* address) {
     strncpy(CONFIG.previous_address, address, 255);
     CONFIG.previous_address[255] = '\0';
+    async_save_config();
+}
+
+void set_game_username(const char* username) {
+    strncpy(CONFIG.username, username, 23);
+    CONFIG.username[23] = '\0';
     async_save_config();
 }

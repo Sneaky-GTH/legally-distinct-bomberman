@@ -26,11 +26,13 @@
 static struct {
     enum ConnectionState state;
     char address[256];
+    char username[30];
     pthread_t network_thread;
     uint8_t client_id;
 } CLIENT_STATE = {
     .state = DISCONNECTED,
     .address = "",
+    .username = "",
     .network_thread = 0,
     .client_id = 0,
 };
@@ -51,7 +53,7 @@ const char* get_server_address() {
 
 static void network_thread_wrapper();
 
-void spawn_network_thread(const char* address) {
+void spawn_network_thread(const char* address, const char* username) {
     if (CLIENT_STATE.network_thread != 0) {
         fprintf(stderr, "Attempted to spawn network thread while one is already active\n");
         return;
@@ -61,6 +63,8 @@ void spawn_network_thread(const char* address) {
     CLIENT_STATE.state = CONNECTING; LOG("CLIENT_STATE.state = CONNECTING;");
     strncpy(CLIENT_STATE.address, address, 255);
     CLIENT_STATE.address[255] = '\0';
+    strncpy(CLIENT_STATE.username, username, 29);
+    CLIENT_STATE.username[29] = '\0';
 
     pthread_t thread_id;
 
@@ -393,15 +397,18 @@ static void network_thread_main() {
 
     strcpy(status_message, "Connection established! Performing handshake...");
 
-    if (send_message(sock, &(Message) {
+    Message msg = {
         .type = MSG_HELLO,
         .sender_id = CLIENT_STATE.client_id,
         .target_id = 255, // Server
         .data.hello = {
             .client_id = "leg-dis-bom-client",
-            .client_name = "Player" // TODO: allow user to specify name
         },
-    }) < 0) {
+    };
+    strncpy(msg.data.hello.client_name, CLIENT_STATE.username, sizeof(msg.data.hello.client_name) - 1);
+    msg.data.hello.client_name[sizeof(msg.data.hello.client_name) - 1] = '\0';
+
+    if (send_message(sock, &msg) < 0) {
         fprintf(stderr, "Failed to send handshake message\n");
         close(sock);
         strcpy(status_message, "Failed to perform handshake");
@@ -484,27 +491,35 @@ static void network_thread_main() {
 
                     CLIENT_STATE.client_id = recv_msg.target_id; // Server may have assigned us a different client ID, update it
 
-                    enqueue_event(&(struct GameEvent) { .type = EVENT_RESET });
-                    enqueue_event(&(struct GameEvent) {
+                    struct GameEvent* new_player_event;
+
+                    new_player_event = &(struct GameEvent) {
                         .type = EVENT_NEW_PLAYER,
                         .new_player = {
                             // This is the first player, so the game thread should treat this as "us"
                             .player_id = CLIENT_STATE.client_id,
-                            .name = "Player", 
                         }
-                    });
+                    };
+
+                    strncpy(new_player_event->new_player.name, CLIENT_STATE.username, 29);
+                    new_player_event->new_player.name[29] = '\0';
+
+                    enqueue_event(&(struct GameEvent) { .type = EVENT_RESET });
+                    enqueue_event(new_player_event);
 
                     // Send the rest of the players
                     for (int i = 0; i < recv_msg.data.welcome.len; i++) {
                         if (recv_msg.data.welcome.clients[i].client_id == CLIENT_STATE.client_id) {
                             continue; // Skip ourselves, already added above
                         }
-                        enqueue_event(&(struct GameEvent) {
+                        new_player_event = &(struct GameEvent) {
                             .type = EVENT_NEW_PLAYER,
                             .new_player = {
                                 .player_id = recv_msg.data.welcome.clients[i].client_id,
                             },
-                        });
+                        };
+                        strncpy(new_player_event->new_player.name, recv_msg.data.welcome.clients[i].client_name, 29);
+                        enqueue_event(new_player_event);
                     }
 
                     break;

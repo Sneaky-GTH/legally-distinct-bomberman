@@ -123,7 +123,15 @@ void drawText(const char *text, GLfloat x, GLfloat y) {
     glDisable(GL_TEXTURE_2D);
 }
 
-int textWidth(void *font, const char *s, size_t count) {
+void drawTextScaled(const char *text, GLfloat x, GLfloat y, GLfloat scale) {
+    glPushMatrix();
+    glTranslatef(x, y, 0);
+    glScalef(scale, scale, 1.0f);
+    drawText(text, 0, 0);
+    glPopMatrix();
+}
+
+int textWidth(const char *s, size_t count) {
     int w = 0;
     for (size_t i = 0; i < count && s[i] != '\0'; ++i) {
         unsigned char char_idx = (unsigned char)s[i];

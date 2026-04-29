@@ -5,6 +5,7 @@
 
 struct Player {
     uint8_t id;
+    char username[30];
     uint8_t p_count; // Bomb count
     uint8_t p_size;  // Bomb explosion size
     uint8_t p_speed; // Movement speed (ticks per movement event)

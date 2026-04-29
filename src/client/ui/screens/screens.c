@@ -1,5 +1,10 @@
+#include "../assets/themes.h"
+#include "../assets/sprites.h"
+#include "../immediate.h"
+#include "../text.h"
 #include "./screens.h"
-#include "../game/assets/themes.h"
+#include <GL/glut.h>
+#include <string.h>
 
 static enum GuiScreen current_screen = screen_main;
 static struct GuiState GUI_STATE = {
@@ -78,3 +83,39 @@ void draw_background(void) {
 
     unbind_spritesheet();
 }
+
+void get_centered_offsets(int width, int height, int *out_x, int *out_y) {
+    int window_width = glutGet(GLUT_WINDOW_WIDTH);
+    int window_height = glutGet(GLUT_WINDOW_HEIGHT);
+    *out_x = (window_width - width) / 2;
+    *out_y = (window_height - height) / 2;
+}
+
+int draw_menu_button_colored(const char *id, const char *text, int x, int y, int width, int height, float r, float g, float b) {
+    struct GuiState *state = get_gui_state();
+    struct ImButton btn = button_create(id);
+    layout_component(&btn.component, x, y, width, height);
+    
+    if (r >= 0.0f) {
+        glColor3f(r, g, b);
+    } else if (button_is_hovered(&btn, state->mouse_x, state->mouse_y)) {
+        glColor3f(0.7f, 0.7f, 0.7f);
+    } else {
+        glColor3f(1.0f, 1.0f, 1.0f);
+    }
+    
+    render_component(&btn.component);
+    
+    glColor3f(1.0f, 1.0f, 1.0f);
+    size_t len = strlen(text);
+    int t_width = textWidth(text, len);
+    
+    drawText(text, x + (width - t_width) / 2, y + height / 2 + 2);
+    
+    return button_clicked(&btn, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON);
+}
+
+int draw_menu_button(const char *id, const char *text, int x, int y, int width, int height) {
+    return draw_menu_button_colored(id, text, x, y, width, height, -1.0f, -1.0f, -1.0f);
+}
+

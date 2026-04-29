@@ -34,3 +34,7 @@ void set_screen(enum GuiScreen screen, const void *data);
 enum GuiScreen get_current_screen(void);
 
 void draw_background(void);
+
+void get_centered_offsets(int width, int height, int *out_x, int *out_y);
+int draw_menu_button(const char *id, const char *text, int x, int y, int width, int height);
+int draw_menu_button_colored(const char *id, const char *text, int x, int y, int width, int height, float r, float g, float b);

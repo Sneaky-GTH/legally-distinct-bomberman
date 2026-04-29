@@ -12,7 +12,7 @@ enum ConnectionState {
 enum ConnectionState get_connection_state();
 const char* get_server_address();
 
-void spawn_network_thread(const char* address);
+void spawn_network_thread(const char* address, const char* username);
 void shutdown_network_thread();
 
 const char* get_status_message();

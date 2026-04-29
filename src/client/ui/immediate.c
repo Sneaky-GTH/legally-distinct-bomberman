@@ -94,16 +94,6 @@ void im_mouse_button(int button, int state) {
     }
 }
 
-struct ImInput input_create(const char *id, char *buffer, size_t capacity) {
-    struct ImInput input;
-
-    component_init(&input.component, id, ImComponentInput);
-    input.buffer = buffer;
-    input.capacity = capacity;
-
-    return input;
-}
-
 void set_component_renderer(struct ImComponent *component, ImComponentRenderFunc render_func) {
     if (component == NULL) {
         return;

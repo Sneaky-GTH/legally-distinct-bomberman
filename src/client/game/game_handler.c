@@ -155,25 +155,27 @@ struct Player* find_player_by_id(uint8_t player_id) {
     return NULL;
 }
 
-void add_player(uint8_t player_id) {
+void add_player(uint8_t player_id, const char* username) {
     if (find_player_by_id(player_id) != NULL) {
         return; // Player already exists, do nothing
     }
 
-    LOG("[GAME] Adding player %d", player_id);
+    LOG("[GAME] Adding player %d %s", player_id, username);
 
     GAME_STATE.players = realloc(GAME_STATE.players, sizeof(struct Player) * (GAME_STATE.num_players + 1));
-    GAME_STATE.players[GAME_STATE.num_players] = (struct Player) {
-        .id = player_id,
-        .p_count = 0,
-        .p_size = 0,
-        .p_speed = 0,
-        .p_time = 0,
-        .x = 0,
-        .y = 0,
-        .alive = true,
-        .ready = false,
-    };
+    memset(&GAME_STATE.players[GAME_STATE.num_players], 0, sizeof(struct Player));
+    struct Player *pl = &GAME_STATE.players[GAME_STATE.num_players];
+    pl->id = player_id;
+    strncpy(pl->username, username, 29);
+    pl->username[29] = '\0';
+    pl->p_count = 0;
+    pl->p_size = 0;
+    pl->p_speed = 0;
+    pl->p_time = 0;
+    pl->x = 0;
+    pl->y = 0;
+    pl->alive = true;
+    pl->ready = false;
     GAME_STATE.num_players++;
 }
 
@@ -428,7 +430,7 @@ void game_thread() {
                     // This is us!
                     GAME_STATE.player_id = event.new_player.player_id;
                 }
-                add_player(event.new_player.player_id);
+                add_player(event.new_player.player_id, event.new_player.name);
                 break;
             }
 

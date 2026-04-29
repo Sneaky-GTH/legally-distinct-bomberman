@@ -189,6 +189,20 @@ void init_sprites(void) {
     define_sprite(SPRITE_BUTTON_LEFT,   128, tex_h - 16, 6, 16, tex_w, tex_h);
     define_sprite(SPRITE_BUTTON_MIDDLE, 134, tex_h - 16, 4, 16, tex_w, tex_h);
     define_sprite(SPRITE_BUTTON_RIGHT,  138, tex_h - 16, 6, 16, tex_w, tex_h);
+
+    define_sprite(SPRITE_INPUT_LEFT,   161, tex_h - 21, 6, 21, tex_w, tex_h);
+    define_sprite(SPRITE_INPUT_MIDDLE, 167, tex_h - 21, 1, 21, tex_w, tex_h);
+    define_sprite(SPRITE_INPUT_RIGHT,  168, tex_h - 21, 8, 21, tex_w, tex_h);
+
+    define_sprite(SPRITE_TEXTBOX_TOPLEFT,     160, tex_h - 25, 3, 4, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_TOP,         163, tex_h - 25, 1, 4, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_TOPRIGHT,    164, tex_h - 25, 3, 4, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_MIDDLELEFT,  160, tex_h - 27, 3, 1, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_MIDDLE,      163, tex_h - 27, 1, 1, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_MIDDLERIGHT, 164, tex_h - 27, 3, 1, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_BOTTOMLEFT,  160, tex_h - 30, 3, 4, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_BOTTOM,      163, tex_h - 30, 1, 4, tex_w, tex_h);
+    define_sprite(SPRITE_TEXTBOX_BOTTOMRIGHT, 164, tex_h - 30, 3, 4, tex_w, tex_h);
 }
 
 SpriteDef get_sprite_def(SpriteId id) {
@@ -219,4 +233,28 @@ void draw_sprite(SpriteId id, float x, float y, float w, float h) {
     glTexCoord2f(def.u_max, def.v_max); glVertex2f(x + w, y + h);
     glTexCoord2f(def.u_min, def.v_max); glVertex2f(x,     y + h);
     glEnd();
+}
+
+void blit_textbox(float x, float y, float width, float height) {
+    bind_spritesheet();
+
+    float m = 2.0f; // Scale up the 3px corners to 6px for better visibility
+
+    float mw = width - (6 * m); // 3px for each side
+    float mh = height - (8 * m); // 4px for each side
+
+    // Top row
+    draw_sprite(SPRITE_TEXTBOX_TOPLEFT, x, y, 3 * m, 4 * m);
+    draw_sprite(SPRITE_TEXTBOX_TOP, x + 3 * m, y, mw, 4 * m);
+    draw_sprite(SPRITE_TEXTBOX_TOPRIGHT, x + 3 * m + mw, y, 3 * m, 4 * m);
+    // Middle row
+    draw_sprite(SPRITE_TEXTBOX_MIDDLELEFT, x, y + 4 * m, 3 * m, mh);
+    draw_sprite(SPRITE_TEXTBOX_MIDDLE, x + 3 * m, y + 4 * m, mw, mh);
+    draw_sprite(SPRITE_TEXTBOX_MIDDLERIGHT, x + 3 * m + mw, y + 4 * m, 3 * m, mh);
+    // Bottom row
+    draw_sprite(SPRITE_TEXTBOX_BOTTOMLEFT, x, y + 4 * m + mh, 3 * m, 4 * m);
+    draw_sprite(SPRITE_TEXTBOX_BOTTOM, x + 3 * m, y + 4 * m + mh, mw, 4 * m);
+    draw_sprite(SPRITE_TEXTBOX_BOTTOMRIGHT, x + 3 * m + mw, y + 4 * m + mh, 3 * m, 4 * m);
+
+    unbind_spritesheet();
 }

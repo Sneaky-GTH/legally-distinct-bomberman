@@ -1,4 +1,5 @@
 #include "../../net/client.h"
+#include "../assets/sprites.h"
 #include "../immediate.h"
 #include "../text.h"
 #include "./connection.h"
@@ -16,67 +17,61 @@ void init_connecting(const void *data) {
         }
 
         struct ConnectScreenData conn_data = *(struct ConnectScreenData*) data; 
-        spawn_network_thread(conn_data.server_address);
+        spawn_network_thread(conn_data.server_address, conn_data.username);
     }
 }
 
 void draw_connecting() {
     enum ConnectionState connection_state = get_connection_state();
-    struct GuiState *state = get_gui_state();
+    
+    int total_w = 400;
+    int total_h = 320;
+    int cx, cy;
+    get_centered_offsets(total_w, total_h, &cx, &cy);
 
-    // Set text color to white
     glColor3f(1.0, 1.0, 1.0);
-    drawText("Legally Distinct Bomberman", 40, 40);
+    
+    const char *title = "Legally Distinct Bomberman";
+    int title_w = textWidth(title, strlen(title)) * 2;
+    int title_cx = cx + total_w / 2;
+    
+    blit_textbox(title_cx - title_w/2 - 20, cy, title_w + 40, 60);
+    drawTextScaled(title, title_cx - title_w/2, cy + 32, 2.0f);
 
-    drawText("Connecting to ", 40, 80);
-    drawText(get_server_address(), 162, 80);
+    int box_y = cy + 80;
+    int box_w = 320;
+    int box_h = 100;
+    blit_textbox(title_cx - box_w/2, box_y, box_w, box_h);
+
+    int text_y = box_y + 30;
 
     switch (connection_state) {
         case CONNECTING:
-            drawText("Connecting...", 40, 120);
+            drawText("Connecting...", title_cx - box_w/2 + 20, text_y);
             break;
         case HANDSHAKE:
-            drawText("Performing handshake...", 40, 120);
+            drawText("Performing handshake...", title_cx - box_w/2 + 20, text_y);
             break;
         case DISCONNECTED:
-            drawText("Disconnected.", 40, 120);
+            drawText("Disconnected.", title_cx - box_w/2 + 20, text_y);
             break;
         case TEARDOWN:
-            drawText("Shutting down connection...", 40, 120);
+            drawText("Shutting down connection...", title_cx - box_w/2 + 20, text_y);
             break;
         case ESTABLISHED:
             set_screen(screen_lobby, NULL);
             return;
     }
 
-    drawText(get_status_message(), 40, 160);
+    drawText(get_status_message(), title_cx - box_w/2 + 20, text_y + 40);
 
-    // Draw back button
-    // if (connection_state == DISCONNECTED) {
+    int btn_height = 32;
+    int back_y = box_y + box_h + 20;
 
-        const int BUTTON_WIDTH = 80;
-        const int BUTTON_HEIGHT = 32;
-        const int BUTTON_X = 40;
-        const int BUTTON_Y = 180;
-
-        struct ImButton back_button = button_create("button-connection-back");
-        layout_component(&back_button.component, BUTTON_X, BUTTON_Y, BUTTON_WIDTH, BUTTON_HEIGHT);
-
-        if (button_is_hovered(&back_button, state->mouse_x, state->mouse_y)) {
-            glColor3f(0.7, 0.7, 0.7); // Hover color
-        } else {
-            glColor3f(1.0, 1.0, 1.0); // Normal color
-        }
-
-        render_component(&back_button.component);
-
-        drawText("Back", BUTTON_X + 16, BUTTON_Y + 18);
-
-        if (button_clicked(&back_button, state->mouse_x, state->mouse_y, LEFT_MOUSE_BUTTON)) {
-            shutdown_network_thread();
-            set_screen(screen_main, NULL);
-        }
-    // }
+    if (draw_menu_button("button-connection-back", "Back", title_cx - box_w/2, back_y, box_w, btn_height)) {
+        shutdown_network_thread();
+        set_screen(screen_main, NULL);
+    }
 }
 
 void keyboard_connecting(unsigned char key, int is_special) {
