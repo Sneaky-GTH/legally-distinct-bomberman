@@ -31,16 +31,22 @@ void print_playingField(PlayingField* field) {
 
 
 void free_playingField(PlayingField* field) {
-    //free(field->cell);
-    //free(field);
+    free(field->cell);
+    free(field);
 }
 
 void prepare_playingField(PlayingField *field) {
-    for (int i = 0; i < field->height; i++) {
-        for (int j = 0; j < field->width; j++) {
-            //if ((j + i) % 2) CELL(field, j, i) = (uint8_t)'H';
+    for (int i = 1; i < field->height - 1; i++) {
+        for (int j = 1; j < field->width - 1; j++) {
+            if ((j + i) % 2 == 0) CELL(field, j, i) = (uint8_t)'S';
+            if ((j + i) % 3 == 0) CELL(field, j, i) = (uint8_t)'H';
         }
     }
+
+    CELL(field, field->width/2, 0) = (uint8_t)'S';
+    CELL(field, field->width/2, field->height - 1) = (uint8_t)'H';
+    CELL(field, 0, field->height - 1) = (uint8_t)'H';
+    CELL(field, field->width - 1, field->height - 1) = (uint8_t)'H';
 }
 
 

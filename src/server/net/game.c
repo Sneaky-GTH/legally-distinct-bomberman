@@ -75,7 +75,7 @@ void setup_game(GameState* game) {
     game->status = 0;
     game->client_count = 0;
     game->powerup_counter = 0;
-    game->default_speed = 5;
+    game->default_speed = 50;
     game->default_antibomb = 60;
     game->default_radius = 1;
     game->default_countdown = 60;
@@ -186,7 +186,7 @@ void check_player_powerup(GameState* game, ServerMessage* servermessages) {
         if (game->clients[i].p.id == 0) continue;
         if (game->clients[i].is_alive != 1) continue;
 
-        uint8_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
+        uint16_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
 
         if (cell != 'A' && cell != 'T' && cell != 'N') continue;
 
@@ -348,7 +348,7 @@ void spread_out_players(GameState* game, MessageQueue* output) {
         switch(game->clients[i].p.id) {
             case 1:
                 printf("Yep, were adding the client here...\n");
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, 1, 1, '1' + i);
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1' + i);
                 break;
             case 2:
                 res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1' + i);
@@ -601,7 +601,7 @@ void gametick(GameState* game, MessageQueue* output) {
     process_bombs(game, servermessages);
     process_antibombs(game, servermessages);
     process_explosions(game);
-    //check_for_winner(game, servermessages);
+    check_for_winner(game, servermessages);
     spawn_power_up(game, servermessages);
     time_down_speed_limit(game);
 
