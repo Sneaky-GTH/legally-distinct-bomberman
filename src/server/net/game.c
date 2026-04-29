@@ -295,10 +295,10 @@ void *game_thread(void* arg) {
 
     while (1) {
         // build deadline 16ms from last tick (not from now)
-        next_tick.tv_nsec += 16 * 1000000;
-        if (next_tick.tv_nsec >= 1000000000) {
+        next_tick.tv_nsec += 500L * 1000000L;
+        if (next_tick.tv_nsec >= 1000000000L) {
             next_tick.tv_sec  += 1;
-            next_tick.tv_nsec -= 1000000000;
+            next_tick.tv_nsec -= 1000000000L;
         }
 
         pthread_mutex_lock(&args->input->lock);
