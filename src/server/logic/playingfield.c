@@ -1,6 +1,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <dirent.h>
+#include <string.h>
+#include <time.h>
 #include "server/logic/playingfield.h"
 
 int init_playingField(PlayingField* field, uint16_t w, uint16_t h) {
@@ -36,17 +42,82 @@ void free_playingField(PlayingField* field) {
 }
 
 void prepare_playingField(PlayingField *field) {
-    for (int i = 1; i < field->height - 1; i++) {
-        for (int j = 1; j < field->width - 1; j++) {
-            if ((j + i) % 2 == 0) CELL(field, j, i) = (uint8_t)'S';
-            if ((j + i) % 3 == 0) CELL(field, j, i) = (uint8_t)'H';
+    // Open "./assets/fields/*", pick randomly
+    DIR *d;
+    struct dirent *dir;
+    int count = 0;
+    d = opendir("./assets/fields");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            if (strstr(dir->d_name, ".txt")) count++;
+        }
+        closedir(d);
+    }
+    
+    if (count == 0) {
+        fprintf(stderr, "No fields found\n");
+        return;
+    }
+
+    srand(time(NULL));
+    int r = rand() % count;
+    
+    char filepath[256];
+    d = opendir("./assets/fields");
+    if (d) {
+        int i = 0;
+        while ((dir = readdir(d)) != NULL) {
+            if (strstr(dir->d_name, ".txt")) {
+                if (i == r) {
+                    snprintf(filepath, sizeof(filepath), "./assets/fields/%s", dir->d_name);
+                    break;
+                }
+                i++;
+            }
+        }
+        closedir(d);
+    }
+
+    FILE *f = fopen(filepath, "r");
+
+    if (!f) {
+        fprintf(stderr, "Failed to open field config\n");
+        return;
+    }
+
+    uint16_t w, h;
+    if (fscanf(f, "%hu %hu\n", &h, &w) != 2) {
+        fprintf(stderr, "Failed to read width and height from field config\n");
+        fclose(f);
+        return;
+    }
+
+    if (w != field->width || h != field->height) {
+        realloc(field->cell, w * h * sizeof(uint16_t));
+        field->width = w;
+        field->height = h;
+    }
+
+    // Read the rest of the lines to fill the field with the corresponding characters
+    int c;
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            c = fgetc(f);
+            if (c == EOF) {
+                fprintf(stderr, "Failed to read cell content from field config\n");
+                fclose(f);
+                return;
+            }
+            CELL(field, j, i) = (uint8_t)c;
+        }
+        if ((c = fgetc(f)) != '\n' && c != EOF) {
+            fprintf(stderr, "Expected newline at the end of line in field config, got %c\n", c);
+            fclose(f);
+            return;
         }
     }
 
-    CELL(field, field->width/2, 0) = (uint8_t)'S';
-    CELL(field, field->width/2, field->height - 1) = (uint8_t)'H';
-    CELL(field, 0, field->height - 1) = (uint8_t)'H';
-    CELL(field, field->width - 1, field->height - 1) = (uint8_t)'H';
+    fclose(f);
 }
 
 
