@@ -48,3 +48,4 @@ struct GameState {
 };
 
 const struct GameState* get_game_state();
+bool is_tile_exploding(uint8_t x, uint8_t y);

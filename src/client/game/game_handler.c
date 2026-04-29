@@ -289,6 +289,14 @@ static void end_explosion(uint16_t position, uint8_t radius) {
     remove_explosion_origin(position);
 }
 
+bool is_tile_exploding(uint8_t x, uint8_t y) {
+    if (x >= GAME_STATE.width || y >= GAME_STATE.height) {
+        return false;
+    }
+    uint16_t pos = POS(x, y);
+    return GAME_STATE.field[pos] == EXPLOSION;
+}
+
 void game_thread() {
     struct GameEvent event;
 

@@ -85,7 +85,7 @@ void init_sprites(void) {
     float tex_h = (float)h;
 
 #define SPRITE(id, x, y) define_sprite(SPRITE_##id, (x) * 16, tex_h - (y + 1) * 16, 16, 16, tex_w, tex_h)
-
+    // WALLS
     SPRITE(DIRT_TOP,           0, 0);
     SPRITE(DIRT,               0, 1);
     SPRITE(BROKEN_DIRT_1,      1, 0);
@@ -100,41 +100,88 @@ void init_sprites(void) {
     SPRITE(BROKEN_GRANITE_2,   5, 1);
     SPRITE(STONE_TOP,          6, 0);
     SPRITE(STONE,              6, 1);
-    SPRITE(BROKEN_STONE_1,     8, 0);
-    SPRITE(BROKEN_STONE_2,     8, 1);
-    SPRITE(BONUS_SIZE,         0, 7);
-    SPRITE(BONUS_SPEED,        0, 8);
-    SPRITE(BONUS_TIME,         1, 7);
-    SPRITE(BONUS_COUNT,        1, 8);
-    SPRITE(BOMB,               4, 8);
-    SPRITE(BG_BLUE_1,          0, 9);
-    SPRITE(BG_BLUE_12,         0, 10);
-    SPRITE(BG_BLUE_2,          0, 11);
-    SPRITE(BG_BLUE_23,         0, 12);
-    SPRITE(BG_BLUE_3,          0, 13);
-    SPRITE(BG_BLUE_34,         0, 14);
-    SPRITE(BG_BLUE_4,          0, 15);
-    SPRITE(BG_YELLOW_1,        1, 9);
-    SPRITE(BG_YELLOW_12,       1, 10);
-    SPRITE(BG_YELLOW_2,        1, 11);
-    SPRITE(BG_YELLOW_23,       1, 12);
-    SPRITE(BG_YELLOW_3,        1, 13);
-    SPRITE(BG_YELLOW_34,       1, 14);
-    SPRITE(BG_YELLOW_4,        1, 15);
-    SPRITE(BG_PURPLE_1,        2, 9);
-    SPRITE(BG_PURPLE_12,       2, 10);
-    SPRITE(BG_PURPLE_2,        2, 11);
-    SPRITE(BG_PURPLE_23,       2, 12);
-    SPRITE(BG_PURPLE_3,        2, 13);
-    SPRITE(BG_PURPLE_34,       2, 14);
-    SPRITE(BG_PURPLE_4,        2, 15);
-    SPRITE(BG_GRAY_1,          3, 9);
-    SPRITE(BG_GRAY_12,         3, 10);
-    SPRITE(BG_GRAY_2,          3, 11);
-    SPRITE(BG_GRAY_23,         3, 12);
-    SPRITE(BG_GRAY_3,          3, 13);
-    SPRITE(BG_GRAY_34,         3, 14);
-    SPRITE(BG_GRAY_4,          3, 15);
+    SPRITE(BROKEN_STONE_1,     7, 0);
+    SPRITE(BROKEN_STONE_2,     7, 1);
+
+    // MISC
+    SPRITE(BOMB,        9, 0);
+    SPRITE(BOMB_ALT,    9, 1);
+    SPRITE(BONUS_SIZE,  0, 5);
+    SPRITE(BONUS_SPEED, 0, 6);
+    SPRITE(BONUS_TIME,  1, 5);
+    SPRITE(BONUS_COUNT, 1, 6);
+
+    // PLAYERS
+    SPRITE(PLAYER_1, 2, 5);
+    SPRITE(PLAYER_2, 2, 6);
+    SPRITE(PLAYER_3, 2, 7);
+    SPRITE(PLAYER_4, 2, 8);
+    SPRITE(PLAYER_5, 3, 5);
+    SPRITE(PLAYER_6, 3, 6);
+    SPRITE(PLAYER_7, 3, 7);
+    SPRITE(PLAYER_8, 3, 8);
+
+    // BACKGROUND TILES
+    SPRITE(BG_BLUE_1,    0, 9);
+    SPRITE(BG_BLUE_12,   0, 10);
+    SPRITE(BG_BLUE_2,    0, 11);
+    SPRITE(BG_BLUE_23,   0, 12);
+    SPRITE(BG_BLUE_3,    0, 13);
+    SPRITE(BG_BLUE_34,   0, 14);
+    SPRITE(BG_BLUE_4,    0, 15);
+    SPRITE(BG_YELLOW_1,  1, 9);
+    SPRITE(BG_YELLOW_12, 1, 10);
+    SPRITE(BG_YELLOW_2,  1, 11);
+    SPRITE(BG_YELLOW_23, 1, 12);
+    SPRITE(BG_YELLOW_3,  1, 13);
+    SPRITE(BG_YELLOW_34, 1, 14);
+    SPRITE(BG_YELLOW_4,  1, 15);
+    SPRITE(BG_PURPLE_1,  2, 9);
+    SPRITE(BG_PURPLE_12, 2, 10);
+    SPRITE(BG_PURPLE_2,  2, 11);
+    SPRITE(BG_PURPLE_23, 2, 12);
+    SPRITE(BG_PURPLE_3,  2, 13);
+    SPRITE(BG_PURPLE_34, 2, 14);
+    SPRITE(BG_PURPLE_4,  2, 15);
+    SPRITE(BG_GRAY_1,    3, 9);
+    SPRITE(BG_GRAY_12,   3, 10);
+    SPRITE(BG_GRAY_2,    3, 11);
+    SPRITE(BG_GRAY_23,   3, 12);
+    SPRITE(BG_GRAY_3,    3, 13);
+    SPRITE(BG_GRAY_34,   3, 14);
+    SPRITE(BG_GRAY_4,    3, 15);
+
+    // EXPLOSIONS
+    SPRITE(EXPLOSION_ULR, 0, 2);
+    SPRITE(EXPLOSION_UDL, 1, 2);
+    SPRITE(EXPLOSION_UD,  2, 2);
+    SPRITE(EXPLOSION_UDR, 3, 2);
+    SPRITE(EXPLOSION,     4, 2);
+    SPRITE(EXPLOSION_LR,  0, 3);
+    SPRITE(EXPLOSION_DR,  1, 3);
+    SPRITE(EXPLOSION_DL,  2, 3);
+    SPRITE(EXPLOSION_D,   3, 3);
+    SPRITE(EXPLOSION_U,   4, 3);
+    SPRITE(EXPLOSION_DLR, 0, 4);
+    SPRITE(EXPLOSION_UR,  1, 4);
+    SPRITE(EXPLOSION_UL,  2, 4);
+    SPRITE(EXPLOSION_L,   3, 4);
+    SPRITE(EXPLOSION_R,   4, 4);
+    SPRITE(EXPLOSION_ALT_ULR, 5, 2);
+    SPRITE(EXPLOSION_ALT_UDL, 6, 2);
+    SPRITE(EXPLOSION_ALT_UD,  7, 2);
+    SPRITE(EXPLOSION_ALT_UDR, 8, 2);
+    SPRITE(EXPLOSION_ALT,     9, 2);
+    SPRITE(EXPLOSION_ALT_LR,  5, 3);
+    SPRITE(EXPLOSION_ALT_DR,  6, 3);
+    SPRITE(EXPLOSION_ALT_DL,  7, 3);
+    SPRITE(EXPLOSION_ALT_D,   8, 3);
+    SPRITE(EXPLOSION_ALT_U,   9, 3);
+    SPRITE(EXPLOSION_ALT_DLR, 5, 4);
+    SPRITE(EXPLOSION_ALT_UR,  6, 4);
+    SPRITE(EXPLOSION_ALT_UL,  7, 4);
+    SPRITE(EXPLOSION_ALT_L,   8, 4);
+    SPRITE(EXPLOSION_ALT_R,   9, 4);
 
 #undef SPRITE
 }

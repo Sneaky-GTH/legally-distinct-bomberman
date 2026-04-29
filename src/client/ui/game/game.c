@@ -11,11 +11,30 @@
 
 #define POS(x, y) ((y) * game_state->width + (x))
 
+struct ThemedExplosionSprites {
+    SpriteId ulr;
+    SpriteId udl;
+    SpriteId ud;
+    SpriteId udr;
+    SpriteId none;
+    SpriteId lr;
+    SpriteId dr;
+    SpriteId dl;
+    SpriteId d;
+    SpriteId u;
+    SpriteId dlr;
+    SpriteId ur;
+    SpriteId ul;
+    SpriteId l;
+    SpriteId r;
+};
+
 struct ThemedSprites {
     SpriteId top;
     SpriteId middle;
     SpriteId broken1;
     SpriteId broken2;
+    SpriteId bomb;
     SpriteId background1;
     SpriteId background12;
     SpriteId background2;
@@ -23,6 +42,7 @@ struct ThemedSprites {
     SpriteId background3;
     SpriteId background34;
     SpriteId background4;
+    struct ThemedExplosionSprites explosion;
 };
 
 static const struct ThemedSprites THEMES[] = {
@@ -31,6 +51,7 @@ static const struct ThemedSprites THEMES[] = {
         .middle = SPRITE_DIRT,
         .broken1 = SPRITE_BROKEN_DIRT_1,
         .broken2 = SPRITE_BROKEN_DIRT_2,
+        .bomb = SPRITE_BOMB,
         .background1 = SPRITE_BG_BLUE_1,
         .background12 = SPRITE_BG_BLUE_12,
         .background2 = SPRITE_BG_BLUE_2,
@@ -38,12 +59,30 @@ static const struct ThemedSprites THEMES[] = {
         .background3 = SPRITE_BG_BLUE_3,
         .background34 = SPRITE_BG_BLUE_34,
         .background4 = SPRITE_BG_BLUE_4,
+        .explosion = {
+            .ulr = SPRITE_EXPLOSION_ULR,
+            .udl = SPRITE_EXPLOSION_UDL,
+            .ud = SPRITE_EXPLOSION_UD,
+            .udr = SPRITE_EXPLOSION_UDR,
+            .none = SPRITE_EXPLOSION,
+            .lr = SPRITE_EXPLOSION_LR,
+            .dr = SPRITE_EXPLOSION_DR,
+            .dl = SPRITE_EXPLOSION_DL,
+            .d = SPRITE_EXPLOSION_D,
+            .u = SPRITE_EXPLOSION_U,
+            .dlr = SPRITE_EXPLOSION_DLR,
+            .ur = SPRITE_EXPLOSION_UR,
+            .ul = SPRITE_EXPLOSION_UL,
+            .l = SPRITE_EXPLOSION_L,
+            .r = SPRITE_EXPLOSION_R,
+        },
     },
     {
         .top = SPRITE_SANDSTONE_TOP,
         .middle = SPRITE_SANDSTONE,
         .broken1 = SPRITE_BROKEN_SANDSTONE_1,
         .broken2 = SPRITE_BROKEN_SANDSTONE_2,
+        .bomb = SPRITE_BOMB_ALT,
         .background1 = SPRITE_BG_YELLOW_1,
         .background12 = SPRITE_BG_YELLOW_12,
         .background2 = SPRITE_BG_YELLOW_2,
@@ -51,12 +90,30 @@ static const struct ThemedSprites THEMES[] = {
         .background3 = SPRITE_BG_YELLOW_3,
         .background34 = SPRITE_BG_YELLOW_34,
         .background4 = SPRITE_BG_YELLOW_4,
+        .explosion = {
+            .ulr = SPRITE_EXPLOSION_ALT_ULR,
+            .udl = SPRITE_EXPLOSION_ALT_UDL,
+            .ud = SPRITE_EXPLOSION_ALT_UD,
+            .udr = SPRITE_EXPLOSION_ALT_UDR,
+            .none = SPRITE_EXPLOSION_ALT,
+            .lr = SPRITE_EXPLOSION_ALT_LR,
+            .dr = SPRITE_EXPLOSION_ALT_DR,
+            .dl = SPRITE_EXPLOSION_ALT_DL,
+            .d = SPRITE_EXPLOSION_ALT_D,
+            .u = SPRITE_EXPLOSION_ALT_U,
+            .dlr = SPRITE_EXPLOSION_ALT_DLR,
+            .ur = SPRITE_EXPLOSION_ALT_UR,
+            .ul = SPRITE_EXPLOSION_ALT_UL,
+            .l = SPRITE_EXPLOSION_ALT_L,
+            .r = SPRITE_EXPLOSION_ALT_R,
+        },
     },
     {
         .top = SPRITE_GRANITE_TOP,
         .middle = SPRITE_GRANITE,
         .broken1 = SPRITE_BROKEN_GRANITE_1,
         .broken2 = SPRITE_BROKEN_GRANITE_2,
+        .bomb = SPRITE_BOMB_ALT,
         .background1 = SPRITE_BG_PURPLE_1,
         .background12 = SPRITE_BG_PURPLE_12,
         .background2 = SPRITE_BG_PURPLE_2,
@@ -64,12 +121,30 @@ static const struct ThemedSprites THEMES[] = {
         .background3 = SPRITE_BG_PURPLE_3,
         .background34 = SPRITE_BG_PURPLE_34,
         .background4 = SPRITE_BG_PURPLE_4,
+        .explosion = {
+            .ulr = SPRITE_EXPLOSION_ALT_ULR,
+            .udl = SPRITE_EXPLOSION_ALT_UDL,
+            .ud = SPRITE_EXPLOSION_ALT_UD,
+            .udr = SPRITE_EXPLOSION_ALT_UDR,
+            .none = SPRITE_EXPLOSION_ALT,
+            .lr = SPRITE_EXPLOSION_ALT_LR,
+            .dr = SPRITE_EXPLOSION_ALT_DR,
+            .dl = SPRITE_EXPLOSION_ALT_DL,
+            .d = SPRITE_EXPLOSION_ALT_D,
+            .u = SPRITE_EXPLOSION_ALT_U,
+            .dlr = SPRITE_EXPLOSION_ALT_DLR,
+            .ur = SPRITE_EXPLOSION_ALT_UR,
+            .ul = SPRITE_EXPLOSION_ALT_UL,
+            .l = SPRITE_EXPLOSION_ALT_L,
+            .r = SPRITE_EXPLOSION_ALT_R,
+        },
     },
     {
         .top = SPRITE_STONE_TOP,
         .middle = SPRITE_STONE,
         .broken1 = SPRITE_BROKEN_STONE_1,
         .broken2 = SPRITE_BROKEN_STONE_2,
+        .bomb = SPRITE_BOMB,
         .background1 = SPRITE_BG_GRAY_1,
         .background12 = SPRITE_BG_GRAY_12,
         .background2 = SPRITE_BG_GRAY_2,
@@ -77,6 +152,23 @@ static const struct ThemedSprites THEMES[] = {
         .background3 = SPRITE_BG_GRAY_3,
         .background34 = SPRITE_BG_GRAY_34,
         .background4 = SPRITE_BG_GRAY_4,
+        .explosion = {
+            .ulr = SPRITE_EXPLOSION_ULR,
+            .udl = SPRITE_EXPLOSION_UDL,
+            .ud = SPRITE_EXPLOSION_UD,
+            .udr = SPRITE_EXPLOSION_UDR,
+            .none = SPRITE_EXPLOSION,
+            .lr = SPRITE_EXPLOSION_LR,
+            .dr = SPRITE_EXPLOSION_DR,
+            .dl = SPRITE_EXPLOSION_DL,
+            .d = SPRITE_EXPLOSION_D,
+            .u = SPRITE_EXPLOSION_U,
+            .dlr = SPRITE_EXPLOSION_DLR,
+            .ur = SPRITE_EXPLOSION_UR,
+            .ul = SPRITE_EXPLOSION_UL,
+            .l = SPRITE_EXPLOSION_L,
+            .r = SPRITE_EXPLOSION_R,
+        },
     },
 };
 
@@ -146,6 +238,7 @@ void draw_game_board() {
         }
     }
 
+    // Draw walls, bombs, and powerups
     for (int y = 0; y < game_state->height; y++) {
         for (int x = 0; x < game_state->width; x++) {
             cell_types_t cell = game_state->field[POS(x, y)];
@@ -163,7 +256,7 @@ void draw_game_board() {
                     spr = (x * 31 + y * 17) % 2 == 0 ? theme->broken1 : theme->broken2;
                     break;
                 case BOMB:
-                    spr = SPRITE_BOMB;
+                    spr = theme->bomb;
                     break;
                 case EXPLOSION:
                     spr = SPRITE_NONE; // TODO: add explosion sprite(s)
@@ -193,13 +286,66 @@ void draw_game_board() {
         }
     }
 
+    // Draw explosions
+    for (int y = 0; y < game_state->height; y++) {
+        for (int x = 0; x < game_state->width; x++) {
+            if (is_tile_exploding(x, y)) {
+                SpriteId spr = theme->explosion.none; // TODO: choose explosion sprite based on which directions the explosion extends in
+                float x_pos = x_offset + x * tile_size;
+                float y_pos = y_offset + y * tile_size;
+
+                int connection_bits = 0;
+                connection_bits |= is_tile_exploding(x, y - 1) << 0; // Up
+                connection_bits |= is_tile_exploding(x, y + 1) << 1; // Down
+                connection_bits |= is_tile_exploding(x - 1, y) << 2; // Left
+                connection_bits |= is_tile_exploding(x + 1, y) << 3; // Right
+
+                // Invert, since the sprite names are based on which directions the explosion does NOT extend in
+                connection_bits = (~connection_bits) & 0b1111;
+
+                switch (connection_bits) {
+                    case 0b0000: spr = theme->explosion.none; break;
+                    case 0b0001: spr = theme->explosion.u; break;
+                    case 0b0010: spr = theme->explosion.d; break;
+                    case 0b0011: spr = theme->explosion.ud; break;
+                    case 0b0100: spr = theme->explosion.l; break;
+                    case 0b0101: spr = theme->explosion.ul; break;
+                    case 0b0110: spr = theme->explosion.dl; break;
+                    case 0b0111: spr = theme->explosion.udl; break;
+                    case 0b1000: spr = theme->explosion.r; break;
+                    case 0b1001: spr = theme->explosion.ur; break;
+                    case 0b1010: spr = theme->explosion.dr; break;
+                    case 0b1011: spr = theme->explosion.udr; break;
+                    case 0b1100: spr = theme->explosion.lr; break;
+                    case 0b1101: spr = theme->explosion.ulr; break;
+                    case 0b1110: spr = theme->explosion.dlr; break;
+                    case 0b1111: spr = theme->explosion.none; break;
+                }
+
+                draw_sprite(spr, x_pos, y_pos, tile_size, tile_size);
+            }
+        }
+    }
+
+    // Draw players on top of everything else
     for (int i = 0; i < game_state->num_players; i++) {
         const struct Player *player = &game_state->players[i];
         if (!player->alive) {
             continue;
         }
 
-        SpriteId pid = SPRITE_SANDSTONE; // TODO: add player sprites
+        SpriteId pid;
+
+        switch (player->id % 8) {
+            case 0: pid = SPRITE_PLAYER_1; break;
+            case 1: pid = SPRITE_PLAYER_2; break;
+            case 2: pid = SPRITE_PLAYER_3; break;
+            case 3: pid = SPRITE_PLAYER_4; break;
+            case 4: pid = SPRITE_PLAYER_5; break;
+            case 5: pid = SPRITE_PLAYER_6; break;
+            case 6: pid = SPRITE_PLAYER_7; break;
+            case 7: pid = SPRITE_PLAYER_8; break;
+        }
 
         float x_pos = x_offset + player->x * tile_size;
         float y_pos = y_offset + player->y * tile_size;
