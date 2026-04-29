@@ -188,7 +188,9 @@ void check_player_powerup(GameState* game, ServerMessage* servermessages) {
 
         uint16_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
 
+        printf("Checking for cell...\n");
         if (cell != 'A' && cell != 'T' && cell != 'N') continue;
+        printf("Successfully checked for cell.!!..\n");
 
         switch (cell) {
             case 'A':
@@ -621,6 +623,7 @@ void gametick(GameState* game, MessageQueue* output) {
     process_explosions(game);
     check_for_winner(game, servermessages);
     spawn_power_up(game, servermessages);
+    check_player_powerup(game, servermessages);
     time_down_speed_limit(game);
 
     while(servermessages->has_content == 1) {
