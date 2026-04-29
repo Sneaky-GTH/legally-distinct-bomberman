@@ -9,6 +9,9 @@
 #include "lib/protocol/messages.h"
 
 
+#define BOMB_COOLDOWN 600
+
+
 int add_new_client(Client clients[MAX_CLIENTS], ClientMessage* msg) {
 
     int fd = msg->fd;
@@ -63,21 +66,33 @@ int srv_process_disconnect(GameState* game, int fd) {
 
 int srv_process_move_attempt(GameState* game, Message* msg) {
 
-    return player_move_attempt(
+    if (game->clients[msg->sender_id - 1].can_move != 0) return -1;
+
+    int res = player_move_attempt(
         &game->wallmap,
         &game->playermap,
         &game->clients[msg->sender_id - 1].p,
         msg->data.move_attempt.direction
     );
 
+    if (res > 0) game->clients[msg->sender_id - 1].can_move = game->default_speed - game->clients[msg->sender_id - 1].p.p_speed * 10;
+
+    return res;
+
 }
 
 int srv_process_bomb_attempt(GameState* game, Message* msg) {
 
-    return player_bomb_attempt(
+    if (game->clients[msg->sender_id - 1].can_bomb != 0) return -1;
+
+    int res = player_bomb_attempt(
         game,
         &game->clients[msg->sender_id - 1].p
     );
+
+    if (res > 0) game->clients[msg->sender_id - 1].can_bomb = BOMB_COOLDOWN;
+
+    return res;
 
 }
 

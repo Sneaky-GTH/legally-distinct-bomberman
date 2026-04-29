@@ -66,6 +66,8 @@ ServerHandle setup_epoll(int port) {
 
 int main(void) {
 
+    srand(time(NULL));
+
     MessageQueue input_queue  = {
         .lock = PTHREAD_MUTEX_INITIALIZER,
         .not_empty = PTHREAD_COND_INITIALIZER

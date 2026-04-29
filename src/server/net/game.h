@@ -14,6 +14,8 @@ typedef struct Client {
     int fd;
     int is_ready;
     int is_alive;
+    int can_move;
+    int can_bomb;
     char name[30];
 } Client;
 
@@ -26,6 +28,12 @@ typedef struct GameState {
     Bomb* bombs;
     Antibomb* antibombs;
     int status;
+    int default_speed;
+    int default_antibomb;
+    int default_radius;
+    int default_countdown;
+    int powerup_counter;
+    int config;
 } GameState;
 
 

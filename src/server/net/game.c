@@ -12,6 +12,52 @@
 
 GameState gamestate;
 
+int load_game_state(const char *filename, GameState* game) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return -1;
+
+    int height, width;
+    fscanf(fp, "%d %d %d %d %d %d\n",
+           &height, &width,
+           &game->default_speed,
+           &game->default_antibomb,
+           &game->default_radius,
+           &game->default_countdown);
+
+    game->wallmap.height = (uint16_t)height;
+    game->playermap.height = (uint16_t)height;
+    game->wallmap.width = (uint16_t)width;
+    game->playermap.height = (uint16_t)width;
+
+    size_t cell_count = (size_t)height * width;
+    game->wallmap.cell   = calloc(cell_count, sizeof(uint16_t));
+    game->playermap.cell = calloc(cell_count, sizeof(uint16_t));
+
+    char line[1024];
+    for (int row = 0; row < height; row++) {
+        if (!fgets(line, sizeof(line), fp)) break;
+        int col = 0;
+        for (char *p = line; *p && col < width; p++) {
+            if (*p != ' ' && *p != '\r' && *p != '\n')
+                game->wallmap.cell[row * width + col++] = (uint16_t)(uint8_t)*p;
+        }
+    }
+
+    for (int row = 0; row < height; row++) {
+        if (!fgets(line, sizeof(line), fp)) break;
+        int col = 0;
+        for (char *p = line; *p && col < width; p++) {
+            if (*p != ' ' && *p != '\r' && *p != '\n')
+                game->playermap.cell[row * width + col++] = (uint16_t)(uint8_t)*p;
+        }
+    }
+
+
+    fclose(fp);
+    return 0;
+}
+
+
 void send_to_client(int fd, Message msg, MessageQueue* output) {
 
     ClientMessage cmsg = {
@@ -28,6 +74,20 @@ void send_to_client(int fd, Message msg, MessageQueue* output) {
 
 
     printf("GAME INFO: Message added to TX queue, good luck TX!\n");
+}
+
+
+void time_down_speed_limit(GameState* game) {
+
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        if (game->clients[i].is_alive != 1) continue;
+
+        game->clients[i].can_move -= 1;
+        game->clients[i].can_bomb -= 1;
+
+    }
+
 }
 
 
@@ -84,7 +144,62 @@ void check_player_death(GameState* game, ServerMessage* servermessages) {
 }
 
 
-void check_for_winer(GameState* state, MessageQueue* output) {
+void check_player_powerup(GameState* game, ServerMessage* servermessages) {
+    //print_playingField(&game->wallmap);
+    //print_playingField(&game->playermap);
+    //printf("---------------");
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        if (game->clients[i].is_alive != 1) continue;
+
+        uint8_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
+
+        if (cell != 'A' && cell != 'T' && cell != 'N') continue;
+
+        switch (cell) {
+            case 'A':
+                game->clients[i].p.p_speed += 1;
+                break;
+            case 'R':
+                game->clients[i].p.p_size += 1;
+                break;
+            case 'T':
+                game->clients[i].p.p_time += 1;
+                break;
+        }
+
+        uint8_t x = game->clients[i].p.x;
+        uint8_t y = game->clients[i].p.y;
+
+        SAFE_SET_CELL(&game->wallmap, x, y, '.');
+
+        while (servermessages->nextmsg != NULL) {
+            servermessages = servermessages->nextmsg;
+        }
+
+        ServerMessage* next = malloc(sizeof(ServerMessage));
+        next->nextmsg = NULL;
+        servermessages->nextmsg = (struct ServerMessage*)next;
+
+        Message tx_msg = (Message){
+            .type = MSG_BONUS_RETRIEVED,
+            .sender_id = 255,
+            .target_id = 254,
+            .data.bonus_retrieved= {
+                .player_id = game->clients[i].p.id,
+                .position = cell_to_uint(&game->wallmap, x, y)
+            }
+        };
+
+        servermessages->has_content = 1;
+        servermessages->msg = tx_msg;
+
+
+    }
+}
+
+
+void check_for_winner(GameState* game, ServerMessage* servermessages) {
 
     // first, check how many are alive
     int alive = 0;
@@ -119,12 +234,70 @@ void check_for_winer(GameState* state, MessageQueue* output) {
         .sender_id = 255,
         .target_id = 254,
         .data.winner= {
-            .player_id = alive,
+            .winner_id = alive,
         }
     };
 
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
+
+}
+
+
+void spawn_power_up(GameState* game, ServerMessage* servermessages) {
+    game->powerup_counter += 1;
+
+    if (game->powerup_counter < POWERUP_SPAWN_TIME) {
+        game->powerup_counter += POWERUP_SPAWN_TIME;
+        return;
+    }
+
+    game->powerup_counter -= POWERUP_SPAWN_TIME;
+
+    int x = rand() % game->wallmap.width;
+    int y = rand() % game->wallmap.height;
+
+    if (SAFE_GET_CELL(&game->wallmap, x, y) != '.') return;
+
+    int type = rand() % 4;
+    uint8_t powerup;
+
+    switch (type) {
+        case 0:
+            powerup = 'A';
+            break;
+        case 1:
+            powerup = 'R';
+            break;
+        case 2:
+            powerup = 'T';
+            break;
+    }
+
+    SAFE_SET_CELL(&game->wallmap, x, y, powerup);
+
+
+    while (servermessages->nextmsg != NULL) {
+        servermessages = servermessages->nextmsg;
+    }
+
+    ServerMessage* next = malloc(sizeof(ServerMessage));
+    next->nextmsg = NULL;
+    servermessages->nextmsg = (struct ServerMessage*)next;
+
+    Message tx_msg = (Message){
+        .type = MSG_BONUS_AVAILABLE,
+        .sender_id = 255,
+        .target_id = 254,
+        .data.bonus_available= {
+            .bonus_type = type,
+            .position = cell_to_uint(&game->wallmap, x, y),
+        }
+    };
+
+    servermessages->has_content = 1;
+    servermessages->msg = tx_msg;
+
 
 }
 
@@ -138,16 +311,16 @@ void spread_out_players(GameState* game, MessageQueue* output) {
 
         switch(game->clients[i].p.id) {
             case 1:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1' + i);
                 break;
             case 2:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1' + i);
                 break;
             case 3:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, game->playermap.height - 1, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, game->playermap.height - 1, '1' + i);
                 break;
             case 4:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, game->playermap.height - 1, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, game->playermap.height - 1, '1' + i);
                 break;
             case 5:
                 break;
@@ -314,7 +487,9 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
             broadcast_to_clients(gamestate.clients, tx_msg, output);
 
-            spread_out_players(&gamestate, output);
+            if (gamestate.config < 0) {
+                spread_out_players(&gamestate, output);
+            }
 
             tx_msg = (Message){
                 .type = MSG_SET_STATUS,
@@ -343,11 +518,18 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
 void setup_game(GameState* game) {
 
+    if (game->status == 1) {
+        free_playingField(&game->wallmap);
+        free_playingField(&game->playermap);
+    }
+
     for (int i = 0; i < MAX_CLIENTS; i++) {
         game->clients[i].fd = 0;
         game->clients[i].p.id = 0;
         game->clients[i].is_ready = 0;
         game->clients[i].is_alive = 1;
+        game->clients[i].can_move = 0;
+        game->clients[i].can_bomb = 0;
         reset_player(&game->clients[i].p, 0, 255, 255);
     }
 
@@ -355,10 +537,23 @@ void setup_game(GameState* game) {
     game->explosions = NULL;
     game->status = 0;
     game->client_count = 0;
+    game->powerup_counter = 0;
+    game->default_speed = 100;
+    game->default_antibomb = 60;
+    game->default_radius = 1;
+    game->default_countdown = 60;
+    game->config = load_game_state("game.cfg", game) == -1;
+
+    if (game->config >= 0) return;
 
     init_playingField(&game->playermap, 10, 10);
     init_playingField(&game->wallmap, 10, 10);
+
+    prepare_playingField(&game->playermap);
+    prepare_playingField(&game->wallmap);
+
 }
+
 
 void gametick(GameState* game, MessageQueue* output) {
 
@@ -374,7 +569,9 @@ void gametick(GameState* game, MessageQueue* output) {
     process_bombs(game, servermessages);
     process_antibombs(game, servermessages);
     process_explosions(game);
-    check_for_winer(game, servermessages);
+    check_for_winner(game, servermessages);
+    spawn_power_up(game, servermessages);
+    time_down_speed_limit(game);
 
     while(servermessages->has_content == 1) {
         ServerMessage* next = servermessages->nextmsg;
@@ -396,6 +593,7 @@ static int timespec_passed(const struct timespec *t) {
 
 void *game_thread(void* arg) {
     GameArgs* args = (GameArgs*)arg;
+    gamestate.status = 0;
     setup_game(&gamestate);
 
     struct timespec next_tick;

@@ -36,7 +36,7 @@ int create_antibomb(GameState* game, uint8_t target_x, uint8_t target_y, int r) 
 
     antibomb->x = target_x;
     antibomb->y = target_y;
-    antibomb->lifetime = DEFAULT_ANTIBOMB_TIMER;
+    antibomb->lifetime = game->default_antibomb;
     antibomb->radius = r;
 
     add_antibomb(game, antibomb);
@@ -68,8 +68,50 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
     for (int i = 1; i < r; i++) {
         if (SAFE_GET_CELL(field, x+i, y) == 'f') break;
         if (SAFE_GET_CELL(field, x+i, y) == 'H') break;
+        if (SAFE_GET_CELL(field, x+i, y) == 'B') {
+
+            Bomb* prevbomb = game->bombs;
+            for(Bomb* currentbomb = game->bombs; currentbomb != NULL; prevbomb = currentbomb, currentbomb = currentbomb->nextbomb) {
+                if (currentbomb->x != x+i) continue;
+                if (currentbomb->x != y) continue;
+
+                if (currentbomb == game->bombs) {
+                    game->bombs = game->bombs->nextbomb;
+                    explode_bomb(game, currentbomb, servermessages);
+                    free(currentbomb);
+                    break;
+                }
+
+                prevbomb->nextbomb = currentbomb->nextbomb;
+                explode_bomb(game, currentbomb, servermessages);
+                free(currentbomb);
+
+            }
+
+        }
         if (SAFE_GET_CELL(field, x+i, y) == 'S') {
             SAFE_SET_CELL(field, x+i, y, '.');
+
+            while (servermessages->nextmsg != NULL) {
+                servermessages = servermessages->nextmsg;
+            }
+
+            ServerMessage* next = malloc(sizeof(ServerMessage));
+            next->nextmsg = NULL;
+            servermessages->nextmsg = (struct ServerMessage*)next;
+
+            Message tx_msg = (Message){
+                .type = MSG_BLOCK_DESTROYED,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.block_destroyed = {
+                    .position = cell_to_uint(field, x+i, y),
+                }
+            };
+
+            servermessages->has_content = 1;
+            servermessages->msg = tx_msg;
+
             break;
         }
         SAFE_SET_CELL(field, x+i, y, 'X');
@@ -80,8 +122,51 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
     for (int i = 1; i < r; i++) {
         if (SAFE_GET_CELL(field, x-i, y) == 'f') break;
         if (SAFE_GET_CELL(field, x-i, y) == 'H') break;
+        if (SAFE_GET_CELL(field, x-i, y) == 'B') {
+
+            Bomb* prevbomb = game->bombs;
+            for(Bomb* currentbomb = game->bombs; currentbomb != NULL; prevbomb = currentbomb, currentbomb = currentbomb->nextbomb) {
+                if (currentbomb->x != x-i) continue;
+                if (currentbomb->x != y) continue;
+
+                if (currentbomb == game->bombs) {
+                    game->bombs = game->bombs->nextbomb;
+                    explode_bomb(game, currentbomb, servermessages);
+                    free(currentbomb);
+                    break;
+                }
+
+                prevbomb->nextbomb = currentbomb->nextbomb;
+                explode_bomb(game, currentbomb, servermessages);
+                free(currentbomb);
+
+            }
+
+        }
         if (SAFE_GET_CELL(field, x-i, y) == 'S') {
             SAFE_SET_CELL(field, x-i, y, '.');
+
+            while (servermessages->nextmsg != NULL) {
+                servermessages = servermessages->nextmsg;
+            }
+
+            ServerMessage* next = malloc(sizeof(ServerMessage));
+            next->nextmsg = NULL;
+            servermessages->nextmsg = (struct ServerMessage*)next;
+
+            Message tx_msg = (Message){
+                .type = MSG_BLOCK_DESTROYED,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.block_destroyed = {
+                    .position = cell_to_uint(field, x-i, y),
+                }
+            };
+
+            servermessages->has_content = 1;
+            servermessages->msg = tx_msg;
+
+
             break;
         }
         SAFE_SET_CELL(field, x-i, y, 'X');
@@ -92,8 +177,51 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
     for (int i = 1; i < r; i++) {
         if (SAFE_GET_CELL(field, x, y+i) == 'f') break;
         if (SAFE_GET_CELL(field, x, y+i) == 'H') break;
+        if (SAFE_GET_CELL(field, x, y+i) == 'B') {
+
+            Bomb* prevbomb = game->bombs;
+            for(Bomb* currentbomb = game->bombs; currentbomb != NULL; prevbomb = currentbomb, currentbomb = currentbomb->nextbomb) {
+                if (currentbomb->x != x) continue;
+                if (currentbomb->x != y+i) continue;
+
+                if (currentbomb == game->bombs) {
+                    game->bombs = game->bombs->nextbomb;
+                    explode_bomb(game, currentbomb, servermessages);
+                    free(currentbomb);
+                    break;
+                }
+
+                prevbomb->nextbomb = currentbomb->nextbomb;
+                explode_bomb(game, currentbomb, servermessages);
+                free(currentbomb);
+
+            }
+
+        }
         if (SAFE_GET_CELL(field, x, y+i) == 'S') {
             SAFE_SET_CELL(field, x, y+i, '.');
+
+            while (servermessages->nextmsg != NULL) {
+                servermessages = servermessages->nextmsg;
+            }
+
+            ServerMessage* next = malloc(sizeof(ServerMessage));
+            next->nextmsg = NULL;
+            servermessages->nextmsg = (struct ServerMessage*)next;
+
+            Message tx_msg = (Message){
+                .type = MSG_BLOCK_DESTROYED,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.block_destroyed = {
+                    .position = cell_to_uint(field, x, y+i),
+                }
+            };
+
+            servermessages->has_content = 1;
+            servermessages->msg = tx_msg;
+
+
             break;
         }
         SAFE_SET_CELL(field, x, y+i, 'X');
@@ -104,8 +232,51 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
     for (int i = 1; i < r; i++) {
         if (SAFE_GET_CELL(field, x, y-i) == 'f') break;
         if (SAFE_GET_CELL(field, x, y-i) == 'H') break;
+        if (SAFE_GET_CELL(field, x, y-i) == 'B') {
+
+            Bomb* prevbomb = game->bombs;
+            for(Bomb* currentbomb = game->bombs; currentbomb != NULL; prevbomb = currentbomb, currentbomb = currentbomb->nextbomb) {
+                if (currentbomb->x != x) continue;
+                if (currentbomb->x != y-i) continue;
+
+                if (currentbomb == game->bombs) {
+                    game->bombs = game->bombs->nextbomb;
+                    explode_bomb(game, currentbomb, servermessages);
+                    free(currentbomb);
+                    break;
+                }
+
+                prevbomb->nextbomb = currentbomb->nextbomb;
+                explode_bomb(game, currentbomb, servermessages);
+                free(currentbomb);
+
+            }
+
+        }
         if (SAFE_GET_CELL(field, x, y-i) == 'S') {
             SAFE_SET_CELL(field, x, y-i, '.');
+
+            while (servermessages->nextmsg != NULL) {
+                servermessages = servermessages->nextmsg;
+            }
+
+            ServerMessage* next = malloc(sizeof(ServerMessage));
+            next->nextmsg = NULL;
+            servermessages->nextmsg = (struct ServerMessage*)next;
+
+            Message tx_msg = (Message){
+                .type = MSG_BLOCK_DESTROYED,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.block_destroyed = {
+                    .position = cell_to_uint(field, x, y-i),
+                }
+            };
+
+            servermessages->has_content = 1;
+            servermessages->msg = tx_msg;
+
+
             break;
         }
         SAFE_SET_CELL(field, x, y-i, 'X');
@@ -329,8 +500,8 @@ int create_bomb(GameState* game, uint8_t target_x, uint8_t target_y, Player* p) 
 
     bomb->x = target_x;
     bomb->y = target_y;
-    bomb->lifetime = DEFAULT_BOMB_TIMER;
-    bomb->radius = 1 + p->p_size;
+    bomb->lifetime = game->default_countdown;
+    bomb->radius = game->default_radius + p->p_size;
 
     add_bomb(game, bomb);
     SAFE_SET_CELL(&game->wallmap, target_x, target_y, 'B');
