@@ -107,7 +107,7 @@ void send_to_client(int fd, Message msg, MessageQueue* output) {
     pthread_mutex_unlock(&output->lock);
 
 
-    printf("GAME INFO: Message added to TX queue, good luck TX!\n");
+    //printf("GAME INFO: Message added to TX queue, good luck TX!\n");
 }
 
 
@@ -129,7 +129,7 @@ void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i].p.id == 0) continue;
         send_to_client(clients[i].fd, msg, output);
-        printf("GAME INFO: Sending message to TX queue for client: %d\n", clients[i].p.id);
+        //printf("GAME INFO: Sending message to TX queue for client: %d\n", clients[i].p.id);
     }
 }
 
@@ -137,7 +137,7 @@ void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue
 void print_clients(GameState* game) {
     for (int i = 0; i < MAX_CLIENTS; i++) {
         if (game->clients[i].p.id == 0) continue;
-        printf("GAME DEBUG: Client: %d\n", game->clients[i].p.id);
+        //printf("GAME DEBUG: Client: %d\n", game->clients[i].p.id);
     }
 }
 
@@ -190,7 +190,7 @@ void check_player_powerup(GameState* game, ServerMessage* servermessages) {
 
         printf("%c\n", SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y));
         if (cell != 'A' && cell != 'R' && cell != 'T') continue;
-        printf("Successfully checked for cell.!!..\n");
+        //printf("Successfully checked for cell.!!..\n");
 
         switch (cell) {
             case 'A':
@@ -369,7 +369,7 @@ void spread_out_players(GameState* game, MessageQueue* output) {
 
         switch(game->clients[i].p.id) {
             case 1:
-                printf("Yep, were adding the client here...\n");
+                //printf("Yep, were adding the client here...\n");
                 res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1' + i);
                 break;
             case 2:
@@ -403,7 +403,7 @@ void spread_out_players(GameState* game, MessageQueue* output) {
             },
         };
 
-        printf("GAME INFO: Sending move with position: %d\n", res);
+        //printf("GAME INFO: Sending move with position: %d\n", res);
 
         broadcast_to_clients(gamestate.clients, tx_msg, output);
 
@@ -431,7 +431,7 @@ void spawn_players(GameState* game, MessageQueue* output) {
             },
         };
 
-        printf("GAME INFO: Sending move with position: %d\n", res);
+        //printf("GAME INFO: Sending move with position: %d\n", res);
 
         broadcast_to_clients(gamestate.clients, tx_msg, output);
 
@@ -441,8 +441,8 @@ void spawn_players(GameState* game, MessageQueue* output) {
 
 
 void process_action(ClientMessage* rx_msg, MessageQueue* output) {
-    printf("GAME INFO: Game thread is processing a message!\n");
-    printf("GAME INFO: This message has the type: %d\n", rx_msg->msg.type);
+    //printf("GAME INFO: Game thread is processing a message!\n");
+    //printf("GAME INFO: This message has the type: %d\n", rx_msg->msg.type);
 
     Message tx_msg;
     int res;
@@ -523,7 +523,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
             };
 
             send_to_client(rx_msg->fd, tx_msg, output);
-            printf("GAME INFO: POOOOONNNNNGGGGG!!!!\n");
+            //printf("GAME INFO: POOOOONNNNNGGGGG!!!!\n");
             break;
 
         // --------------- MSG_BOMB_ATTEMPT ---------------
@@ -600,7 +600,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
         // --------------- MSG_EPIC_FAIL ---------------
         default:
-            printf("GAME ERR: Game server received unknown message type.\n");
+            //printf("GAME ERR: Game server received unknown message type.\n");
             break;
     }
 

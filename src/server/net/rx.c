@@ -55,7 +55,7 @@ void* rx_thread(void* arg) {
                 };
                 epoll_ctl(args->sh.epfd, EPOLL_CTL_ADD, client_fd, &cev);
 
-                printf("RX INFO: RX thread has received a new client.\n");
+                //printf("RX INFO: RX thread has received a new client.\n");
 
 
             // HANDLE CLIENT DISCONNECTING
@@ -71,7 +71,7 @@ void* rx_thread(void* arg) {
                     }
                 }
 
-                printf("RX INFO: RX thread has received a new disconnect and is trying to send it to the GAME thread.\n");
+                //printf("RX INFO: RX thread has received a new disconnect and is trying to send it to the GAME thread.\n");
 
                 Message return_msg = {
                     .type = MSG_LEAVE,
@@ -92,7 +92,7 @@ void* rx_thread(void* arg) {
                 pthread_cond_signal(&args->input->not_empty);
                 pthread_mutex_unlock(&args->input->lock);
 
-                printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
+                //printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
 
             // HANDLE DATA FROM EXISTING CLIENT
             } else if (events[i].events & EPOLLIN) {
@@ -117,7 +117,7 @@ void* rx_thread(void* arg) {
                     &msg
                 );
 
-                printf("RX INFO: RX thread is trying to receive a new message...\n");
+                //printf("RX INFO: RX thread is trying to receive a new message...\n");
 
                 if (res == ERECVCLOSED) {
                     // clean disconnect
@@ -137,7 +137,7 @@ void* rx_thread(void* arg) {
                         .fd = client->fd
                     };
 
-                    printf("RX INFO: RX thread has received a full message and is sending it to GAME thread.\n");
+                    //printf("RX INFO: RX thread has received a full message and is sending it to GAME thread.\n");
 
                     pthread_mutex_lock(&args->input->lock);
                     args->input->messages[args->input->tail] = cmsg;
@@ -146,7 +146,7 @@ void* rx_thread(void* arg) {
                     pthread_cond_signal(&args->input->not_empty);
                     pthread_mutex_unlock(&args->input->lock);
 
-                    printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
+                    //printf("RX INFO: RX thread has sent a message to the GAME thread. Good luck!\n");
                 }
 
             } // end of if block
