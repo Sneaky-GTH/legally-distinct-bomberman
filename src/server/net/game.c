@@ -275,7 +275,26 @@ void check_for_winner(GameState* game, ServerMessage* servermessages) {
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
 
-    //setup_game(game);
+    setup_game(game);
+
+    gamestate.status = 1;
+
+    next = malloc(sizeof(ServerMessage));
+    next->nextmsg = NULL;
+    servermessages->nextmsg = (struct ServerMessage*)next;
+
+    tx_msg = (Message){
+        .type = MSG_SET_STATUS,
+        .sender_id = 255,
+        .target_id = 254,
+        .data.set_status = {
+            .status = 2,
+        },
+    };
+
+    servermessages->has_content = 1;
+    servermessages->msg = tx_msg;
+
 
 }
 
@@ -284,11 +303,11 @@ void spawn_power_up(GameState* game, ServerMessage* servermessages) {
     game->powerup_counter += 1;
 
     if (game->powerup_counter < POWERUP_SPAWN_TIME) {
-        game->powerup_counter += POWERUP_SPAWN_TIME;
+        game->powerup_counter += 10;
         return;
     }
 
-    game->powerup_counter -= POWERUP_SPAWN_TIME * 1000;
+    game->powerup_counter -= POWERUP_SPAWN_TIME;
 
     int x = rand() % game->wallmap.width;
     int y = rand() % game->wallmap.height;
