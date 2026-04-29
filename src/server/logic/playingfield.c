@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "server/logic/playingfield.h"
 
-int init_playingField(PlayingField* field, uint8_t w, uint8_t h) {
+int init_playingField(PlayingField* field, uint16_t w, uint16_t h) {
     field->width = w;
     field->height = h;
 
@@ -44,7 +44,7 @@ void prepare_playingField(PlayingField *field) {
 }
 
 
-uint8_t SAFE_GET_CELL(PlayingField* field, uint8_t x, uint8_t y) {
+uint8_t SAFE_GET_CELL(PlayingField* field, uint16_t x, uint16_t y) {
     if (x < 0 || y < 0) {
         return 'f';
     }
@@ -56,7 +56,7 @@ uint8_t SAFE_GET_CELL(PlayingField* field, uint8_t x, uint8_t y) {
     return CELL(field, x, y);
 }
 
-uint8_t SAFE_SET_CELL(PlayingField* field, uint8_t x, uint8_t y, uint8_t v) {
+uint8_t SAFE_SET_CELL(PlayingField* field, uint16_t x, uint16_t y, uint8_t v) {
     if (x < 0 || y < 0) {
         return 'f';
     }
@@ -70,7 +70,7 @@ uint8_t SAFE_SET_CELL(PlayingField* field, uint8_t x, uint8_t y, uint8_t v) {
 }
 
 
-uint8_t move_cell_contents(PlayingField* field, uint8_t x1, uint8_t y1, uint8_t x2, uint8_t y2) {
+uint8_t move_cell_contents(PlayingField* field, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
     CELL(field, x2, y2) = CELL(field, x1, y1);
     CELL(field, x1, y1) = '.';
 
@@ -78,7 +78,7 @@ uint8_t move_cell_contents(PlayingField* field, uint8_t x1, uint8_t y1, uint8_t 
 }
 
 
-uint8_t cell_to_uint(PlayingField* field, uint8_t x, uint8_t y) {
+uint8_t cell_to_uint(PlayingField* field, uint16_t x, uint16_t y) {
     return (y) * (field)->width + (x);
 }
 

@@ -33,6 +33,7 @@ void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue
 void process_action(ClientMessage* msg, MessageQueue* queue);
 void spread_out_players(GameState* game, MessageQueue* output);
 
+void gametick(GameState* game, MessageQueue* queue);
 void *game_thread(void* arg);
 
 

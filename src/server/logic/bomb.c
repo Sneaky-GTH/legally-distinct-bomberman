@@ -6,13 +6,13 @@
 #include "server/logic/bomb.h"
 #include "server/net/game.h"
 
-int explode_bomb(GameState* game, Bomb bomb) {
+int explode_bomb(GameState* game, Bomb* bomb, MessageQueue* queue) {
 
     PlayingField* field = &game->wallmap;
-    uint8_t x = bomb.x;
-    uint8_t y = bomb.y;
-    uint8_t r = bomb.radius;
-    uint8_t lifetime = bomb.lifetime;
+    uint8_t x = bomb->x;
+    uint8_t y = bomb->y;
+    uint8_t r = bomb->radius;
+    uint8_t lifetime = bomb->lifetime;
 
     if (SAFE_GET_CELL(field, x, y) != 'B') {
         return -1;
@@ -29,17 +29,29 @@ int explode_bomb(GameState* game, Bomb bomb) {
             break;
         }
         SAFE_SET_CELL(field, x+i, y, 'X');
-        Explosion* explo = create_explosion(x+i, y, bomb. lifetime);
+        Explosion* explo = create_explosion(x+i, y, bomb);
         add_explosion(game, explo);
     }
 
+    Message tx_msg = (Message){
+        .type = MSG_EXPLOSION_START,
+        .sender_id = 255,
+        .target_id = 254,
+        .data.explosion = {
+            .radius = bomb->radius,
+            .position = cell_to_uint(field, bomb->x, bomb->y),
+        }
+    };
+
+    broadcast_to_clients(game->clients, tx_msg, queue);
+
 }
 
-Explosion* create_explosion(uint8_t x, uint8_t y, uint8_t lifetime) {
+Explosion* create_explosion(uint8_t x, uint8_t y, Bomb* bomb) {
     Explosion* explo = malloc(sizeof(Explosion));
     explo->x = x;
     explo->y = y;
-    explo->lifetime = lifetime;
+    explo->lifetime = bomb->lifetime;
     return explo;
 }
 
@@ -88,14 +100,14 @@ void process_explosions(GameState* game) {
 }
 
 
-void process_bombs(GameState* game) {
+void process_bombs(GameState* game, MessageQueue* queue) {
     if (game->bombs == NULL) {
         return;
     }
 
     while (game->bombs->lifetime <= 1) {
         Bomb* nextbomb = game->bombs->nextbomb;
-        clear_explosion_from_map(&game->wallmap, game->bombs->x, game->bombs->y);
+        explode_bomb(game, game->bombs, queue);
         free(game->bombs);
         game->bombs = nextbomb;
     }
@@ -106,7 +118,7 @@ void process_bombs(GameState* game) {
         if (currentbomb->lifetime <= 1) {
             Bomb* nextbomb = currentbomb->nextbomb;
             prevbomb->nextbomb = nextbomb;
-            clear_explosion_from_map(&game->wallmap, currentbomb->x, currentbomb->y);
+            explode_bomb(game, currentbomb, queue);
             free(currentbomb);
             currentbomb = nextbomb;
         } else {
