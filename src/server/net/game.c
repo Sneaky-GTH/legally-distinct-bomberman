@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <protocol/messages.h>
 #include <pthread.h>
+#include <errno.h>
 #include <string.h>
 
 GameState gamestate;
@@ -184,7 +185,22 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
 
         // --------------- MSG_BOMB_ATTEMPT ---------------
         case MSG_BOMB_ATTEMPT:
-            srv_process_ready(&gamestate, &rx_msg->msg);
+            res = srv_process_bomb_attempt(&gamestate, &rx_msg->msg);
+
+            if (res < 0) return;
+
+            tx_msg = (Message){
+                .type = MSG_BOMB,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.moved = {
+                    .player_id = rx_msg->msg.sender_id,
+                    .new_position = (uint8_t)res
+                },
+            };
+
+            broadcast_to_clients(gamestate.clients, tx_msg, output);
+
             break;
 
         // --------------- MSG_READY ---------------
@@ -258,36 +274,57 @@ void setup_game(GameState* game) {
     init_playingField(&game->wallmap, 10, 10);
 }
 
+void gametick(GameState* game) {
+    process_bombs(game);
+    process_explosions(game);
+}
+
+static int timespec_passed(const struct timespec *t) {
+    struct timespec now;
+    clock_gettime(CLOCK_MONOTONIC, &now);
+    return now.tv_sec > t->tv_sec ||
+    (now.tv_sec == t->tv_sec && now.tv_nsec >= t->tv_nsec);
+}
+
 void *game_thread(void* arg) {
     GameArgs* args = (GameArgs*)arg;
-
     setup_game(&gamestate);
 
-    while (1) {
+    struct timespec next_tick;
+    clock_gettime(CLOCK_MONOTONIC, &next_tick);
 
-        struct timespec deadline;
-        clock_gettime(CLOCK_MONOTONIC, &deadline);
-        deadline.tv_nsec += 20 * 1000000;  // 20ms from now
-        if (deadline.tv_nsec >= 1000000000) {
-            deadline.tv_sec  += 1;
-            deadline.tv_nsec -= 1000000000;
+    while (1) {
+        // build deadline 16ms from last tick (not from now)
+        next_tick.tv_nsec += 16 * 1000000;
+        if (next_tick.tv_nsec >= 1000000000) {
+            next_tick.tv_sec  += 1;
+            next_tick.tv_nsec -= 1000000000;
         }
 
         pthread_mutex_lock(&args->input->lock);
 
-        // wait for queue to be nonempty so theres something to process
+        // wait for at least one message, or until tick is due
         while (args->input->count == 0) {
-            pthread_cond_timedwait(&args->input->not_empty, &args->input->lock, &deadline);
+            int rc = pthread_cond_timedwait(&args->input->not_empty,
+                                            &args->input->lock, &next_tick);
+            if (rc == ETIMEDOUT) break;
         }
 
-        ClientMessage msg = args->input->messages[args->input->head];
-        args->input->head = (args->input->head + 1) % MAX_QUEUE;
-        args->input->count--;
+        // drain messages until queue empty or tick deadline passed
+        while (args->input->count > 0 && !timespec_passed(&next_tick)) {
+            ClientMessage msg = args->input->messages[args->input->head];
+            args->input->head = (args->input->head + 1) % MAX_QUEUE;
+            args->input->count--;
+            pthread_mutex_unlock(&args->input->lock);
+
+            process_action(&msg, args->output);
+
+            pthread_mutex_lock(&args->input->lock);
+        }
 
         pthread_mutex_unlock(&args->input->lock);
 
-        process_action(&msg, args->output);
-
+        gametick(&gamestate);
     }
     return NULL;
 }

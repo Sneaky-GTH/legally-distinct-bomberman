@@ -59,6 +59,10 @@ void add_explosion(GameState* game, Explosion* explosion) {
 
 
 void process_explosions(GameState* game) {
+    if (game->explosions == NULL) {
+        return;
+    }
+
     while (game->explosions->lifetime <= 1) {
         Explosion* nextex = game->explosions->nextexplo;
         clear_explosion_from_map(&game->wallmap, game->explosions->x, game->explosions->y);
@@ -85,25 +89,29 @@ void process_explosions(GameState* game) {
 
 
 void process_bombs(GameState* game) {
-    while (game->bombs->lifetime <= 1) {
-        Explosion* nextex = game->explosions->nextexplo;
-        clear_explosion_from_map(&game->wallmap, game->explosions->x, game->explosions->y);
-        free(game->explosions);
-        game->explosions = nextex;
+    if (game->bombs == NULL) {
+        return;
     }
 
-    Explosion* currentexplo = game->explosions->nextexplo;
-    Explosion* prevexplo = game->explosions;
-    while (currentexplo != NULL) {
-        if (currentexplo->lifetime <= 1) {
-            Explosion* nextexplo = currentexplo->nextexplo;
-            prevexplo->nextexplo = nextexplo;
-            clear_explosion_from_map(&game->wallmap, currentexplo->x, currentexplo->y);
-            free(currentexplo);
-            currentexplo = nextexplo;
+    while (game->bombs->lifetime <= 1) {
+        Bomb* nextbomb = game->bombs->nextbomb;
+        clear_explosion_from_map(&game->wallmap, game->bombs->x, game->bombs->y);
+        free(game->bombs);
+        game->bombs = nextbomb;
+    }
+
+    Bomb* currentbomb = game->bombs->nextbomb;
+    Bomb* prevbomb = game->bombs;
+    while (currentbomb != NULL) {
+        if (currentbomb->lifetime <= 1) {
+            Bomb* nextbomb = currentbomb->nextbomb;
+            prevbomb->nextbomb = nextbomb;
+            clear_explosion_from_map(&game->wallmap, currentbomb->x, currentbomb->y);
+            free(currentbomb);
+            currentbomb = nextbomb;
         } else {
-            currentexplo->lifetime -= 1;
-            currentexplo = currentexplo->nextexplo;
+            currentbomb->lifetime -= 1;
+            currentbomb = currentbomb->nextbomb;
         }
     }
 
@@ -115,19 +123,27 @@ void add_bomb(GameState* game, Bomb* bomb) {
 
     if (currentbomb == NULL) {
         game->bombs = bomb;
+        return;
     }
+
+    printf("Poo poo test 3\n");
 
     while (currentbomb->nextbomb != NULL) {
         currentbomb = currentbomb->nextbomb;
     }
 
+    printf("Poo poo test 4\n");
+
     currentbomb->nextbomb = bomb;
+
+    printf("Poo poo test 5\n");
 }
 
 
 int create_bomb(GameState* game, uint8_t target_x, uint8_t target_y, Player* p) {
 
     Bomb* bomb = malloc(sizeof(Bomb));
+    printf("Poo poo test 2\n");
 
     bomb->x = target_x;
     bomb->y = target_y;
@@ -135,6 +151,7 @@ int create_bomb(GameState* game, uint8_t target_x, uint8_t target_y, Player* p) 
     bomb->radius = 1 + p->p_size;
 
     add_bomb(game, bomb);
+    printf("Poo poo test 1\n");
     SAFE_SET_CELL(&game->wallmap, target_x, target_y, 'B');
 }
 

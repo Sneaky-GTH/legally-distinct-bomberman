@@ -74,7 +74,7 @@ int srv_process_bomb_attempt(GameState* game, Message* msg) {
 
     return player_bomb_attempt(
         game,
-        &game->clients[msg->sender_id].p
+        &game->clients[msg->sender_id - 1].p
     );
 
 }
