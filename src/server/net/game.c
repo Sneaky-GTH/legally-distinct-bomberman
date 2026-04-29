@@ -188,7 +188,7 @@ void check_player_powerup(GameState* game, ServerMessage* servermessages) {
 
         uint8_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
 
-        printf("%c\n", SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y));
+        //printf("%c\n", SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y));
         if (cell != 'A' && cell != 'R' && cell != 'T') continue;
         //printf("Successfully checked for cell.!!..\n");
 
