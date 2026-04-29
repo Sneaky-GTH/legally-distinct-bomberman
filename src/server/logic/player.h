@@ -14,8 +14,8 @@ typedef struct Player {
     uint8_t p_speed; // speed power up count
     uint8_t p_time; // explosion timer power up count
     uint8_t p_count; // bomb count power up
-    uint16_t x;
-    uint16_t y;
+    uint8_t x;
+    uint8_t y;
 } Player;
 
 Player* init_player(int id, uint8_t x, uint8_t y);

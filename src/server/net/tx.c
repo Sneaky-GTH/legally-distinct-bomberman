@@ -30,7 +30,7 @@ void *tx_thread(void *arg) {
 
         pthread_mutex_unlock(&args->output->lock);
 
-        printf("TX INFO: TX thread has received a message - %d\n", msg.msg.type);
+        printf("TX INFO: TX thread has received a message, trying to send it...\n");
 
         // send() might block here for a slow client
         // but that's fine — only THIS thread stalls, not the game tick

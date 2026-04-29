@@ -83,13 +83,6 @@ int main(void) {
     GameArgs game_args = { .input = &input_queue, .output = &output_queue };
     TxArgs tx_args = { .output = &output_queue};
 
-    pthread_condattr_t cond_attr;
-    pthread_condattr_init(&cond_attr);
-    pthread_condattr_setclock(&cond_attr, CLOCK_MONOTONIC);
-    pthread_cond_init(&input_queue.not_empty,  &cond_attr);
-    pthread_cond_init(&output_queue.not_empty, &cond_attr);
-    pthread_condattr_destroy(&cond_attr);
-
     pthread_t rx_tid, game_tid, tx_tid;
     pthread_create(&rx_tid,   NULL, rx_thread,   &rx_args);
     pthread_create(&game_tid, NULL, game_thread, &game_args);

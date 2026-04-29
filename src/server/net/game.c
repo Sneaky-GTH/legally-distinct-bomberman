@@ -25,7 +25,7 @@ void send_to_client(int fd, Message msg, MessageQueue* output) {
     pthread_mutex_unlock(&output->lock);
 
 
-    printf("GAME INFO: Message with type %d added to TX queue, good luck TX!\n", msg.type);
+    printf("GAME INFO: Message added to TX queue, good luck TX!\n");
 }
 
 
@@ -242,8 +242,6 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
                 },
             };
 
-            gamestate.status = 1;
-
             broadcast_to_clients(gamestate.clients, tx_msg, output);
 
             break;
@@ -276,10 +274,8 @@ void setup_game(GameState* game) {
     init_playingField(&game->wallmap, 10, 10);
 }
 
-void gametick(GameState* game, MessageQueue* queue) {
-    if (game->status != 1) return;
-    printf("GAME INFO: Processing tick...\n");
-    process_bombs(game, queue);
+void gametick(GameState* game) {
+    process_bombs(game);
     process_explosions(game);
 }
 
@@ -292,25 +288,18 @@ static int timespec_passed(const struct timespec *t) {
 
 void *game_thread(void* arg) {
     GameArgs* args = (GameArgs*)arg;
+    setup_game(&gamestate);
+
     struct timespec next_tick;
     clock_gettime(CLOCK_MONOTONIC, &next_tick);
 
-    setup_game(&gamestate);
-
     while (1) {
-        // build deadline n-ms from last tick (not from now)
-        next_tick.tv_nsec += 500L * 1000000L;
-        if (next_tick.tv_nsec >= 1000000000L) {
+        // build deadline 16ms from last tick (not from now)
+        next_tick.tv_nsec += 16 * 1000000;
+        if (next_tick.tv_nsec >= 1000000000) {
             next_tick.tv_sec  += 1;
-            next_tick.tv_nsec -= 1000000000L;
+            next_tick.tv_nsec -= 1000000000;
         }
-
-        struct timespec now;
-        clock_gettime(CLOCK_MONOTONIC, &now);
-        //if (next_tick.tv_nsec >= 1000000000L) {
-        //    next_tick.tv_sec  += 1L;
-        //    next_tick.tv_nsec -= 1000000000L;
-        //}
 
         pthread_mutex_lock(&args->input->lock);
 
@@ -335,11 +324,7 @@ void *game_thread(void* arg) {
 
         pthread_mutex_unlock(&args->input->lock);
 
-        //pthread_mutex_lock(&args->input->lock);
-
-        //gametick(&gamestate, args->output);
-
-        //pthread_mutex_unlock(&args->input->lock);
+        gametick(&gamestate);
     }
     return NULL;
 }
