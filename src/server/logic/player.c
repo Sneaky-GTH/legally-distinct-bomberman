@@ -84,11 +84,9 @@ int player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p
 
     printf("MOVE INFO: Player trying to move to: (%d, %d)\n", target_x, target_y);
 
-    if (SAFE_GET_CELL(ob_field, target_x, target_y) != '.' &&
-        SAFE_GET_CELL(ob_field, target_x, target_y) != 'X' &&
-        SAFE_GET_CELL(ob_field, target_x, target_y) != 'A' &&
-        SAFE_GET_CELL(ob_field, target_x, target_y) != 'R' &&
-        SAFE_GET_CELL(ob_field, target_x, target_y) != 'T') {
+    if (SAFE_GET_CELL(ob_field, target_x, target_y) == 'H' &&
+        SAFE_GET_CELL(ob_field, target_x, target_y) == 'S' &&
+        SAFE_GET_CELL(ob_field, target_x, target_y) == 'B') {
         return -1;
     }
 

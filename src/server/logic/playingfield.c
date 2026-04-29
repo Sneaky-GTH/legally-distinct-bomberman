@@ -93,7 +93,7 @@ void prepare_playingField(PlayingField *field) {
     }
 
     if (w != field->width || h != field->height) {
-        realloc(field->cell, w * h * sizeof(uint16_t));
+        field->cell = realloc(field->cell, w * h * sizeof(uint16_t));
         field->width = w;
         field->height = h;
     }
