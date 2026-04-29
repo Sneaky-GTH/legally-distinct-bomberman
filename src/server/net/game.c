@@ -79,7 +79,7 @@ void setup_game(GameState* game) {
     game->default_antibomb = 60;
     game->default_radius = 1;
     game->default_countdown = 60;
-    game->config = load_game_state("game.cfg", game) == -1;
+    game->config = load_game_state("game.cfg", game);
 
     if (game->config >= 0) return;
 

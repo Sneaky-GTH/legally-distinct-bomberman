@@ -31,8 +31,8 @@ void print_playingField(PlayingField* field) {
 
 
 void free_playingField(PlayingField* field) {
-    free(field->cell);
-    free(field);
+    //free(field->cell);
+    //free(field);
 }
 
 void prepare_playingField(PlayingField *field) {
