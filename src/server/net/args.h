@@ -6,7 +6,7 @@
 
 #define MAX_QUEUE 256
 #define MAX_CLIENTS 16
-#define POWERUP_SPAWN_TIME 30
+#define POWERUP_SPAWN_TIME 1200
 
 typedef struct {
     Message msg;

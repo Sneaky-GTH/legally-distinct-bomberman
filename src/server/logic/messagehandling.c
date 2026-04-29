@@ -9,7 +9,7 @@
 #include "lib/protocol/messages.h"
 
 
-#define BOMB_COOLDOWN 600
+#define BOMB_COOLDOWN 100
 
 
 int add_new_client(Client clients[MAX_CLIENTS], ClientMessage* msg) {
@@ -86,7 +86,7 @@ int srv_process_move_attempt(GameState* game, Message* msg) {
 
 int srv_process_bomb_attempt(GameState* game, Message* msg) {
 
-    //if (game->clients[msg->sender_id - 1].can_bomb != 0) return -1;
+    if (game->clients[msg->sender_id - 1].can_bomb != 0) return -1;
 
     int res = player_bomb_attempt(
         game,

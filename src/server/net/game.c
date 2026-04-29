@@ -186,10 +186,10 @@ void check_player_powerup(GameState* game, ServerMessage* servermessages) {
         if (game->clients[i].p.id == 0) continue;
         if (game->clients[i].is_alive != 1) continue;
 
-        uint16_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
+        uint8_t cell = SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y);
 
-        printf("Checking for cell...\n");
-        if (cell != 'A' && cell != 'T' && cell != 'N') continue;
+        printf("%c\n", SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y));
+        if (cell != 'A' && cell != 'R' && cell != 'T') continue;
         printf("Successfully checked for cell.!!..\n");
 
         switch (cell) {
@@ -304,7 +304,7 @@ void spawn_power_up(GameState* game, ServerMessage* servermessages) {
     game->powerup_counter += 1;
 
     if (game->powerup_counter < POWERUP_SPAWN_TIME) {
-        game->powerup_counter += 10;
+        game->powerup_counter += 1;
         return;
     }
 
@@ -315,7 +315,7 @@ void spawn_power_up(GameState* game, ServerMessage* servermessages) {
 
     if (SAFE_GET_CELL(&game->wallmap, x, y) != '.') return;
 
-    int type = rand() % 4;
+    int type = rand() % 3;
     uint8_t powerup;
 
     switch (type) {
@@ -327,6 +327,8 @@ void spawn_power_up(GameState* game, ServerMessage* servermessages) {
             break;
         case 2:
             powerup = 'T';
+            break;
+        default:
             break;
     }
 
