@@ -46,7 +46,7 @@ int create_antibomb(GameState* game, uint8_t target_x, uint8_t target_y, int r) 
 
 int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
 
-    printf("GAME INFO: Trying to explode bomb....");
+    //printf("GAME INFO: Trying to explode bomb....");
 
     PlayingField* field = &game->wallmap;
     uint8_t x = bomb->x;
@@ -141,7 +141,7 @@ int explode_bomb(GameState* game, Bomb* bomb, ServerMessage* servermessages) {
 
 int explode_antibomb(GameState* game, Antibomb* antibomb, ServerMessage* servermessages) {
 
-    printf("GAME INFO: Trying to explode bomb....");
+    //printf("GAME INFO: Trying to explode bomb....");
 
     PlayingField* field = &game->wallmap;
     uint8_t x = antibomb->x;

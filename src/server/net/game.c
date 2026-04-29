@@ -48,6 +48,37 @@ void print_clients(GameState* game) {
 }
 
 
+void check_player_death(GameState* game, ServerMessage* servermessages) {
+    for (int i = 0; i < MAX_CLIENTS; i++) {
+        if (game->clients[i].p.id == 0) continue;
+        if (SAFE_GET_CELL(&game->wallmap, game->clients[i].p.x, game->clients[i].p.y) == 'X') {
+            game->clients[i].is_alive = 0;
+
+            while (servermessages->nextmsg != NULL) {
+                servermessages = servermessages->nextmsg;
+            }
+
+            ServerMessage* next = malloc(sizeof(ServerMessage));
+            next->nextmsg = NULL;
+            servermessages->nextmsg = (struct ServerMessage*)next;
+
+            Message tx_msg = (Message){
+                .type = MSG_DEATH,
+                .sender_id = 255,
+                .target_id = 254,
+                .data.death= {
+                    .player_id = game->clients[i].p.id,
+                }
+            };
+
+            servermessages->has_content = 1;
+            servermessages->msg = tx_msg;
+
+        }
+    }
+}
+
+
 void spread_out_players(GameState* game, MessageQueue* output) {
 
     for (int i = 0; i < MAX_CLIENTS; i++) {
@@ -57,7 +88,7 @@ void spread_out_players(GameState* game, MessageQueue* output) {
 
         switch(game->clients[i].p.id) {
             case 1:
-                res = player_set_spawn(&game->playermap, &game->clients[i].p, 1, 1, '1');
+                res = player_set_spawn(&game->playermap, &game->clients[i].p, 0, 0, '1');
                 break;
             case 2:
                 res = player_set_spawn(&game->playermap, &game->clients[i].p, game->playermap.width - 1, 0, '1');
@@ -266,6 +297,7 @@ void setup_game(GameState* game) {
         game->clients[i].fd = 0;
         game->clients[i].p.id = 0;
         game->clients[i].is_ready = 0;
+        game->clients[i].is_alive = 1;
         reset_player(&game->clients[i].p, 0, 255, 255);
     }
 
@@ -279,7 +311,6 @@ void setup_game(GameState* game) {
 }
 
 void gametick(GameState* game, MessageQueue* output) {
-    pthread_mutex_unlock(&output->lock);
 
     if(game->status != 1) return;
 
@@ -292,6 +323,7 @@ void gametick(GameState* game, MessageQueue* output) {
     process_bombs(game, servermessages);
     process_antibombs(game, servermessages);
     process_explosions(game);
+    check_player_death(game, servermessages);
 
     while(servermessages->has_content == 1) {
         ServerMessage* next = servermessages->nextmsg;
@@ -320,11 +352,12 @@ void *game_thread(void* arg) {
 
     while (1) {
         // build deadline 16ms from last tick (not from now)
-        next_tick.tv_nsec += 500L * 1000000L;
+        next_tick.tv_nsec += 16L * 1000000L;
         if (next_tick.tv_nsec >= 1000000000L) {
             next_tick.tv_sec  += 1;
             next_tick.tv_nsec -= 1000000000L;
         }
+
 
         pthread_mutex_lock(&args->input->lock);
 
@@ -349,9 +382,12 @@ void *game_thread(void* arg) {
 
         pthread_mutex_unlock(&args->input->lock);
 
-        pthread_mutex_lock(&args->input->lock);
         gametick(&gamestate, args->output);
-        pthread_mutex_unlock(&args->input->lock);
+
+        if (timespec_passed(&next_tick)) {
+            clock_gettime(CLOCK_MONOTONIC, &next_tick);
+        }
+
     }
     return NULL;
 }

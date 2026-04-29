@@ -6,8 +6,8 @@
 #include "server/logic/playingfield.h"
 #include "server/net/args.h"
 
-#define DEFAULT_BOMB_TIMER 5
-#define DEFAULT_ANTIBOMB_TIMER 5
+#define DEFAULT_BOMB_TIMER 60
+#define DEFAULT_ANTIBOMB_TIMER 60
 
 typedef struct GameState GameState;
 typedef struct Player Player;

@@ -18,6 +18,7 @@ int add_new_client(Client clients[MAX_CLIENTS], ClientMessage* msg) {
             clients[i].fd = fd;
             clients[i].p.id = i + 1;
             clients[i].is_ready = 0;
+            clients[i].is_alive = 1;
             strncpy(clients[i].name, msg->msg.data.hello.client_name, 20);
             return i + 1;
         }
@@ -32,6 +33,7 @@ int remove_client(Client clients[MAX_CLIENTS], int fd) {
         if (clients[i].p.id == i) {
             clients[i].fd = 0;
             clients[i].is_ready = 0;
+            clients[i].is_alive = 0;
             reset_player(&clients[i].p, i, 0, 0);
             return i;
         }

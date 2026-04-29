@@ -13,6 +13,7 @@ typedef struct Client {
     Player p;
     int fd;
     int is_ready;
+    int is_alive;
     char name[30];
 } Client;
 
@@ -32,6 +33,7 @@ void send_to_client(int c, struct Message msg, MessageQueue* output);
 void broadcast_to_clients(Client clients[MAX_CLIENTS], Message msg, MessageQueue* output);
 void process_action(ClientMessage* msg, MessageQueue* queue);
 void spread_out_players(GameState* game, MessageQueue* output);
+void check_player_death(GameState* game, ServerMessage* servermessages);
 
 void *game_thread(void* arg);
 
