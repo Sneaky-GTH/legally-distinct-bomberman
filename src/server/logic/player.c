@@ -49,30 +49,34 @@ int player_set_spawn(PlayingField* field, Player* p, uint8_t x, uint8_t y, uint8
     p->x = x;
     p->y = y;
 
-        //printf("GAME INFO: Set player %d spawn to (%d, %d)\n", p->id, p->x, p->y);
+
+
+    printf("GAME INFO: Set player %d spawn to (%d, %d)\n", p->id, p->x, p->y);
 
     return cell_to_uint(field, x, y);
 }
 
 int player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir) {
 
-    //printf("MOVE INFO: Player %d currently at: (%d, %d)\n", p->id, p->x, p->y);
+    printf("MOVE INFO: Player %d currently at: (%d, %d)\n", p->id, p->x, p->y);
+    printf("MOVE: p->x=%d p->y=%d dir=%d width=%d height=%d\n",
+           p->x, p->y, dir, ob_field->width, ob_field->height);
 
     uint8_t target_x = p->x;
     uint8_t target_y = p->y;
 
     switch(dir) {
         case DIR_UP:
-            target_y -= 1;
+            if (target_y != 0) target_y -= 1;
             break;
         case DIR_DOWN:
-            target_y += 1;
+            if (target_y != ob_field->height - 1) target_y += 1;
             break;
         case DIR_LEFT:
-            target_x -= 1;
+            if (target_x != 0) target_x -= 1;
             break;
         case DIR_RIGHT:
-            target_x += 1;
+            if (target_x != ob_field->width - 1) target_x += 1;
             break;
         default:
             break;
