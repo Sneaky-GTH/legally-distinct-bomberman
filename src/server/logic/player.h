@@ -24,7 +24,7 @@ void reset_player(Player* p, int id, uint8_t x, uint8_t y) ;
 
 int player_move(PlayingField* field, Player* p,  uint8_t x, uint8_t y);
 int player_set_spawn(PlayingField* field, Player* p, uint8_t x, uint8_t y, uint8_t c);
-uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir);
-uint8_t player_bomb_attempt(GameState* game, Player* p);
+int player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir);
+int player_bomb_attempt(GameState* game, Player* p);
 
 #endif

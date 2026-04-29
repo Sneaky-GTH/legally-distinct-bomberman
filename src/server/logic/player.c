@@ -49,10 +49,14 @@ int player_set_spawn(PlayingField* field, Player* p, uint8_t x, uint8_t y, uint8
     p->x = x;
     p->y = y;
 
+        printf("GAME INFO: Set player %d spawn to (%d, %d)\n", p->id, p->x, p->y);
+
     return cell_to_uint(field, x, y);
 }
 
-uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir) {
+int player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Player* p, direction_t dir) {
+
+    printf("MOVE INFO: Player %d currently at: (%d, %d)\n", p->id, p->x, p->y);
 
     uint8_t target_x = p->x;
     uint8_t target_y = p->y;
@@ -74,6 +78,8 @@ uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Playe
             break;
     }
 
+    printf("MOVE INFO: Player trying to move to: (%d, %d)\n", target_x, target_y);
+
     if (SAFE_GET_CELL(ob_field, target_x, target_y) != '.') {
         return -1;
     }
@@ -85,7 +91,7 @@ uint8_t player_move_attempt(PlayingField* ob_field, PlayingField* p_field, Playe
 }
 
 
-uint8_t player_bomb_attempt(GameState* game, Player* p) {
+int player_bomb_attempt(GameState* game, Player* p) {
 
     uint8_t target_x = p->x;
     uint8_t target_y = p->y;

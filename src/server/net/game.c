@@ -155,7 +155,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
         // --------------- MSG_MOVE_ATTEMPT ---------------
         case MSG_MOVE_ATTEMPT:
             res = srv_process_move_attempt(&gamestate, &rx_msg->msg);
-            if (res == -1) return;
+            if (res < 0) return;
 
             tx_msg = (Message){
                 .type = MSG_MOVED,
@@ -163,7 +163,7 @@ void process_action(ClientMessage* rx_msg, MessageQueue* output) {
                 .target_id = 254,
                 .data.moved = {
                     .player_id = rx_msg->msg.sender_id,
-                    .new_position = res
+                    .new_position = (uint8_t)res
                 },
             };
 
@@ -246,7 +246,7 @@ void setup_game(GameState* game) {
         game->clients[i].fd = 0;
         game->clients[i].p.id = 0;
         game->clients[i].is_ready = 0;
-        reset_player(&game->clients[i].p, 0, 0, 0);
+        reset_player(&game->clients[i].p, 0, 255, 255);
     }
 
     game->bombs = NULL;

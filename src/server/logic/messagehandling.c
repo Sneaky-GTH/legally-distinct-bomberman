@@ -59,18 +59,18 @@ int srv_process_disconnect(GameState* game, int fd) {
 
 }
 
-uint8_t srv_process_move_attempt(GameState* game, Message* msg) {
+int srv_process_move_attempt(GameState* game, Message* msg) {
 
     return player_move_attempt(
         &game->wallmap,
         &game->playermap,
-        &game->clients[msg->sender_id].p,
+        &game->clients[msg->sender_id - 1].p,
         msg->data.move_attempt.direction
     );
 
 }
 
-uint8_t srv_process_bomb_attempt(GameState* game, Message* msg) {
+int srv_process_bomb_attempt(GameState* game, Message* msg) {
 
     return player_bomb_attempt(
         game,
@@ -80,7 +80,7 @@ uint8_t srv_process_bomb_attempt(GameState* game, Message* msg) {
 }
 
 
-uint8_t srv_process_ready(GameState* game, Message* msg) {
+int srv_process_ready(GameState* game, Message* msg) {
 
     game->clients[msg->sender_id - 1].is_ready = 1;
 
