@@ -466,7 +466,7 @@ void game_thread() {
 
             case EVENT_WINNER: {
                 LOG("[GAME] Processing event: EVENT_WINNER");
-                // TODO: display winner in the UI using this event
+                GAME_STATE.winner_id = event.winner.winner_id;
                 break;
             }
 
@@ -535,6 +535,7 @@ void game_thread() {
                     .field = NULL,
                     .player_id = GAME_STATE.player_id, // Preserve player ID across resets
                     .status = 0,
+                    .winner_id = 0,
                     .num_players = 0,
                     .players = NULL,
                     .explosion_tracker = { .tiles = NULL },

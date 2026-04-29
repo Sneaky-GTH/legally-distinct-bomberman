@@ -54,6 +54,7 @@ struct GameEvent {
         struct {
             uint8_t player_id;
             char name[30];
+            bool ready;
         } new_player;
 
         struct {

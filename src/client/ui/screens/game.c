@@ -259,6 +259,49 @@ void draw_game_board() {
         shutdown_network_thread();
         set_screen(screen_main, NULL);
     }
+    
+    if (game_state->status == 2) {
+        int overlay_w = 400;
+        int overlay_h = 200;
+        int overlay_x = (window_width - overlay_w) / 2;
+        int overlay_y = (window_height - overlay_h) / 2;
+        
+        // Draw a solid background for the overlay
+        glDisable(GL_TEXTURE_2D);
+        glColor4f(0.0f, 0.0f, 0.0f, 0.8f); // Needs alpha blending enabled though, or just raw color
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(window_width, 0);
+        glVertex2f(window_width, window_height);
+        glVertex2f(0, window_height);
+        glEnd();
+        glEnable(GL_TEXTURE_2D);
+        
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        blit_textbox(overlay_x, overlay_y, overlay_w, overlay_h);
+        
+        char win_msg[200];
+        if (game_state->winner_id == 0) {
+            snprintf(win_msg, sizeof(win_msg), "It's a draw!");
+        } else {
+            const char* winner_name = "Unknown";
+            for (int i = 0; i < game_state->num_players; i++) {
+                if (game_state->players[i].id == game_state->winner_id) {
+                    winner_name = game_state->players[i].username;
+                    break;
+                }
+            }
+            snprintf(win_msg, sizeof(win_msg), "%s wins!", winner_name);
+        }
+        
+        // Center text approximately
+        drawTextScaled(win_msg, overlay_x + 40, overlay_y + 60, 2.0f);
+        
+        if (draw_menu_button("return-lobby-btn", "Return to Main Menu", overlay_x + 50, overlay_y + 130, 300, 40)) {
+            shutdown_network_thread();
+            set_screen(screen_main, NULL);
+        }
+    }
 }
 
 void draw_game() {
@@ -272,6 +315,11 @@ void draw_game() {
 
 void init_game(const void *data) {}
 void keyboard_game(unsigned char key, int is_special) {
+    if (get_game_state()->status != 1) {
+        // Don't allow any input if the game is not in progress
+        return;
+    }
+
     if ((is_special && key == GLUT_KEY_UP) || (!is_special && key == 'w')) {
         enqueue_event(&(struct GameEvent) {
             .type = EVENT_MOVE_ATTEMPT,

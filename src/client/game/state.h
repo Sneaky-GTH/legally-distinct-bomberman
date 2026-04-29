@@ -42,6 +42,7 @@ struct GameState {
     uint8_t player_id;
     // 0 = lobby, 1 = game in progress, 2 = game ended
     uint8_t status;
+    uint8_t winner_id;
 
     uint8_t num_players;
     struct Player* players; // Dynamically allocated array of player states

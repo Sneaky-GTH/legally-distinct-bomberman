@@ -498,6 +498,7 @@ static void network_thread_main() {
                         .new_player = {
                             // This is the first player, so the game thread should treat this as "us"
                             .player_id = CLIENT_STATE.client_id,
+                            .ready = false,
                         }
                     };
 
@@ -516,6 +517,7 @@ static void network_thread_main() {
                             .type = EVENT_NEW_PLAYER,
                             .new_player = {
                                 .player_id = recv_msg.data.welcome.clients[i].client_id,
+                                .ready = recv_msg.data.welcome.clients[i].is_ready,
                             },
                         };
                         strncpy(new_player_event->new_player.name, recv_msg.data.welcome.clients[i].client_name, 29);
