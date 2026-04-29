@@ -275,8 +275,6 @@ void check_for_winner(GameState* game, ServerMessage* servermessages) {
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
 
-    setup_game(game);
-
     gamestate.status = 1;
 
     next = malloc(sizeof(ServerMessage));
@@ -295,6 +293,7 @@ void check_for_winner(GameState* game, ServerMessage* servermessages) {
     servermessages->has_content = 1;
     servermessages->msg = tx_msg;
 
+    game->status = 0;
 
 }
 
